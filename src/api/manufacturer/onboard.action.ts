@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@supabase/supabase-js";
+import { createSession } from "@/lib/supabase/session";
 import { uploadDocument, uploadImage } from "@/lib/upload";
 import {
   type ManufacturerOnboardingForm,
@@ -16,7 +17,6 @@ const supabase = createClient(
 interface OnboardManufacturerData {
   userId: string;
   data: ManufacturerOnboardingForm;
-  // formData: FormData;
 }
 
 export async function onboardManufacturer({
@@ -26,7 +26,7 @@ export async function onboardManufacturer({
   try {
     const { data: existingUser, error: fetchError } = await supabase
       .from("manufacturer")
-      .select("id, is_onboarded")
+      .select("id, is_onboarded,email,mobile")
       .eq("id", userId)
       .single();
 
@@ -128,6 +128,13 @@ export async function onboardManufacturer({
         message: updateError.message || "Failed to complete onboarding.",
       };
     }
+
+    await createSession({
+      userId: userId,
+      email: existingUser.email,
+      role: "MANUFACTURER",
+      isOnboarded: true,
+    });
 
     return {
       success: true,

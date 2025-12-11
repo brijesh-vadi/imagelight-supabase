@@ -38,8 +38,8 @@ const ManufacturerSignInForm = () => {
 
       toast.success(result.message);
 
+      router.push("/manufacturer/dashboard");
       router.refresh();
-      router.push("/manufacturer/onboard");
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong. Please try again.");
