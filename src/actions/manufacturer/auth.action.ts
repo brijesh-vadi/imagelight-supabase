@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
 import {
   type SignInForm,
@@ -16,11 +16,10 @@ import {
   Role,
 } from "@/types";
 
-const supabase = createClient();
-
 export async function signupManufacturer(
   data: SignUpForm,
 ): Promise<ApiResponse<ManufacturerUser>> {
+  const supabase = await createClient();
   try {
     const parsed = signupSchema.safeParse(data);
     if (!parsed.success) {
@@ -57,6 +56,8 @@ export async function signupManufacturer(
       .select("id, email, mobile, is_onboarded")
       .single();
 
+    console.log("insertError", insertError);
+
     if (insertError) {
       return {
         success: false,
@@ -81,6 +82,7 @@ export async function signupManufacturer(
 export async function signInManufacturer(
   data: SignInForm,
 ): Promise<ApiResponse<ManufacturerUser>> {
+  const supabase = await createClient();
   try {
     const parsed = signInSchema.safeParse(data);
     if (!parsed.success) {
@@ -150,6 +152,7 @@ export async function signInManufacturer(
 export async function getManufacturerProfile(
   userId: string,
 ): Promise<ApiResponse<Manufacturer>> {
+  const supabase = await createClient();
   try {
     const { data, error } = await supabase
       .from("manufacturer")

@@ -1,15 +1,17 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/client";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
-import { uploadDocument, uploadImage } from "@/lib/upload";
+import {
+  uploadManufacturerLogo,
+  uploadManufacturerVerificationDocument,
+} from "@/lib/supabase/upload";
 import {
   type ManufacturerOnboardingForm,
   manufacturerOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
 import type { ApiResponse } from "@/types";
-
-const supabase = createClient();
 
 interface OnboardManufacturerData {
   userId: string;
@@ -20,38 +22,31 @@ export async function onboardManufacturer({
   userId,
   data,
 }: OnboardManufacturerData): Promise<ApiResponse<{ isOnboarded: boolean }>> {
+  const supabase = await createClient();
   try {
-    const { data: existingUser, error: fetchError } = await supabase
+    // 1. Check user exists & not already onboarded
+    const { data: existingUser } = await supabase
       .from("manufacturer")
-      .select("id, is_onboarded,email,mobile")
+      .select("id, is_onboarded, email, mobile")
       .eq("id", userId)
       .single();
 
-    if (fetchError || !existingUser) {
-      return {
-        success: false,
-        message: "User not found.",
-      };
+    if (!existingUser) {
+      return { success: false, message: "User not found." };
     }
 
     if (existingUser.is_onboarded) {
-      return {
-        success: false,
-        message: "User is already onboarded.",
-      };
+      redirect("/manufacturer/dashboard");
     }
 
+    // 2. Validate form data
     const parsed = manufacturerOnboardingSchema.safeParse(data);
-
     if (!parsed.success) {
-      return {
-        success: false,
-        message: "Failed to validate the data.",
-      };
+      return { success: false, message: "Invalid data provided." };
     }
-
     const validatedData = parsed.data;
 
+    // 3. Check GST duplicate
     const { data: existingGst } = await supabase
       .from("manufacturer")
       .select("id")
@@ -60,41 +55,37 @@ export async function onboardManufacturer({
       .maybeSingle();
 
     if (existingGst) {
-      return {
-        success: false,
-        message: "GST number is already registered.",
-      };
+      return { success: false, message: "GST number is already registered." };
     }
 
-    let companyLogoUrl: string | undefined;
-    let verificationDocumentUrl: string | undefined;
+    // 4. Upload files → get paths only
+    let companyLogoPath: string | undefined;
+    let verificationDocumentPath: string | undefined;
 
     try {
-      if (validatedData.companyLogo instanceof File) {
-        companyLogoUrl = await uploadImage(
+      if (
+        validatedData.companyLogo instanceof File &&
+        validatedData.companyLogo.size > 0
+      ) {
+        companyLogoPath = await uploadManufacturerLogo(
           validatedData.companyLogo,
-          `manufacturers/${userId}/logo`,
+          userId,
         );
       }
-
-      if (validatedData.verificationDocument instanceof File) {
-        verificationDocumentUrl = await uploadDocument(
+      if (
+        validatedData.verificationDocument instanceof File &&
+        validatedData.verificationDocument.size > 0
+      ) {
+        verificationDocumentPath = await uploadManufacturerVerificationDocument(
           validatedData.verificationDocument,
-          `manufacturers/${userId}/documents`,
+          userId,
         );
       }
-    } catch (uploadError) {
-      console.error("File upload error:", uploadError);
+    } catch (uploadError: any) {
+      console.error("Upload failed:", uploadError);
       return {
         success: false,
-        message: "Failed to upload files. Please try again.",
-      };
-    }
-
-    if (!companyLogoUrl || !verificationDocumentUrl) {
-      return {
-        success: false,
-        message: "Company logo and verification document are required.",
+        message: "Failed to upload files. " + uploadError.message,
       };
     }
 
@@ -110,8 +101,8 @@ export async function onboardManufacturer({
         state: validatedData.state,
         city: validatedData.city,
         pincode: validatedData.pincode,
-        company_logo: companyLogoUrl,
-        verification_document: verificationDocumentUrl,
+        company_logo: companyLogoPath,
+        verification_document: verificationDocumentPath,
         business_type: "manufacturer",
         is_onboarded: true,
         updated_at: new Date().toISOString(),
@@ -119,15 +110,12 @@ export async function onboardManufacturer({
       .eq("id", userId);
 
     if (updateError) {
-      console.error("Database update error:", updateError);
-      return {
-        success: false,
-        message: updateError.message || "Failed to complete onboarding.",
-      };
+      console.error("DB update error:", updateError);
+      return { success: false, message: "Failed to save data." };
     }
 
     await createSession({
-      userId: userId,
+      userId,
       email: existingUser.email,
       role: "MANUFACTURER",
       isOnboarded: true,
@@ -138,8 +126,8 @@ export async function onboardManufacturer({
       message: "Onboarding completed successfully!",
       data: { isOnboarded: true },
     };
-  } catch (err) {
-    console.error("Onboarding error:", err);
+  } catch (err: any) {
+    console.error("Unexpected error:", err);
     return {
       success: false,
       message: "Something went wrong. Please try again.",

@@ -1,14 +1,14 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/client";
+import { cache } from "react";
+import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/supabase/session";
 import { type UnitForm, unitSchema } from "@/schema/manufacturer/unit";
 import type { ApiResponse, Unit } from "@/types";
 
-const supabase = createClient();
-
 export async function addUnit(data: UnitForm): Promise<ApiResponse<Unit>> {
   const session = await getSession();
+  const supabase = await createClient();
   try {
     const parsed = unitSchema.safeParse(data);
     if (!parsed.success) {
@@ -53,6 +53,7 @@ export async function addUnit(data: UnitForm): Promise<ApiResponse<Unit>> {
 export async function getUnits(): Promise<ApiResponse<Unit[]>> {
   try {
     const session = await getSession();
+    const supabase = await createClient();
 
     if (!session?.userId) {
       return { success: true, data: [] };
@@ -87,6 +88,22 @@ export async function getUnits(): Promise<ApiResponse<Unit[]>> {
 
 export async function deleteUnit(unitId: string): Promise<ApiResponse<null>> {
   try {
+    const session = await getSession();
+    const supabase = await createClient();
+
+    const { data: unit, error: fetchError } = await supabase
+      .from("unit")
+      .select("id")
+      .eq("id", unitId)
+      .eq("manufacturer_id", session?.userId)
+      .maybeSingle();
+
+    if (fetchError || !unit) {
+      return {
+        success: false,
+        message: "Unit not found or you don't have permission to delete it",
+      };
+    }
     const { error } = await supabase.from("unit").delete().eq("id", unitId);
 
     if (error) {
@@ -117,6 +134,7 @@ export async function updateUnit(
 ): Promise<ApiResponse<Unit>> {
   try {
     const session = await getSession();
+    const supabase = await createClient();
 
     const parsed = unitSchema.safeParse(data);
     if (!parsed.success) {

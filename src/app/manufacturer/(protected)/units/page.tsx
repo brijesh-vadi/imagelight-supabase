@@ -2,6 +2,8 @@ import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddUnitModal from "@/components/role/manufacturer/view/units/ManufacturerAddUnitModal";
 import ManufacturerUnitTable from "@/components/role/manufacturer/view/units/ManufacturerUnitTable";
 
+export const dynamic = "force-dynamic";
+
 const ManufacturerUnitsPage = async () => {
   const units = await getUnits();
   return (

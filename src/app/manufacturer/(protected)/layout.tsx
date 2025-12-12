@@ -13,7 +13,9 @@ export default async function ManufacturerLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
-      <ManufacturerSidebar manufacturer={response?.data} />
+      {session?.isOnboarded && (
+        <ManufacturerSidebar manufacturer={response?.data} />
+      )}
 
       {/* Main content area */}
       <main className="flex-1 overflow-y-auto p-4">{children}</main>
