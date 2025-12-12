@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { onboardManufacturer } from "@/api/manufacturer/onboard.action";
+import { onboardManufacturer } from "@/actions/manufacturer/onboard.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";

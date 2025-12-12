@@ -24,3 +24,11 @@ export enum Role {
   DEALER = "DEALER",
   ADMIN = "ADMIN",
 }
+
+export interface Unit {
+  id: string;
+  name: string;
+  manufacturer_id: string;
+  created_at: Date;
+  updated_at: Date;
+}

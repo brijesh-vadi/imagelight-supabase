@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ManufacturerOnboardForm from "./ManufacturerOnboardForm";
 
-const ManufacturerOnboardDialog = ({ userId }: { userId: string }) => {
+const ManufacturerOnboardModal = ({ userId }: { userId: string }) => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -15,4 +15,4 @@ const ManufacturerOnboardDialog = ({ userId }: { userId: string }) => {
   );
 };
 
-export default ManufacturerOnboardDialog;
+export default ManufacturerOnboardModal;

@@ -1,11 +1,11 @@
-import ManufacturerOnboardDialog from "@/components/role/manufacturer/view/onboard/ManufacturerOnboardDialog";
+import ManufacturerOnboardModal from "@/components/role/manufacturer/view/onboard/ManufacturerOnboardModal";
 import { getSession } from "@/lib/supabase/session";
 
 const ManufacturerDashboardPage = async () => {
   const session = await getSession();
 
   if (!session?.isOnboarded) {
-    return <ManufacturerOnboardDialog userId={session?.userId ?? ""} />;
+    return <ManufacturerOnboardModal userId={session?.userId ?? ""} />;
   }
   return (
     <>

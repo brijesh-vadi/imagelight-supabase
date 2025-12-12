@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
+import { createClient } from "@/lib/supabase/client";
 import { createSession } from "@/lib/supabase/session";
 import {
   type SignInForm,
@@ -11,10 +11,7 @@ import {
 } from "@/schema/manufacturer/auth";
 import { type ApiResponse, type ManufacturerUser, Role } from "@/types";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-);
+const supabase = createClient();
 
 export async function signupManufacturer(
   data: SignUpForm,
