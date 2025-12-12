@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "seed:admin": "bun run src/actions/admin/seed-admin.ts",
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write"

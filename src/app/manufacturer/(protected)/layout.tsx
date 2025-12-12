@@ -8,13 +8,15 @@ export default async function ManufacturerLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  const response = await getManufacturerProfile(session?.userId ?? "");
+  const { data: manufacturer } = await getManufacturerProfile(
+    session?.userId ?? "",
+  );
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
-      {session?.isOnboarded && (
-        <ManufacturerSidebar manufacturer={response?.data} />
+      {manufacturer?.is_onboarded && (
+        <ManufacturerSidebar manufacturer={manufacturer} />
       )}
 
       {/* Main content area */}

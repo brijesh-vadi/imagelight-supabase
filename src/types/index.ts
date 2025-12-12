@@ -13,9 +13,7 @@ export interface ManufacturerUser {
 
 export interface SessionData {
   userId: string;
-  email: string;
   role: string;
-  isOnboarded: boolean;
 }
 
 export enum Role {
@@ -48,6 +46,16 @@ export interface Manufacturer {
   is_onboarded: boolean;
   is_email_verified: boolean;
   is_mobile_verified: boolean;
+}
+
+export interface Admin {
+  id: string;
+  username: string;
+  email: string;
+  mobile: string;
+  profile_image: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Unit {

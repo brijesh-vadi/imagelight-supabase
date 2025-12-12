@@ -124,9 +124,7 @@ export async function signInManufacturer(
 
     await createSession({
       userId: String(user.id),
-      email: user.email,
       role: Role.MANUFACTURER,
-      isOnboarded: user.is_onboarded,
     });
 
     const manufacturer: ManufacturerUser = {

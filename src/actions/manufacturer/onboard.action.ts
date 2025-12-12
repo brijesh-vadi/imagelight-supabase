@@ -11,7 +11,7 @@ import {
   type ManufacturerOnboardingForm,
   manufacturerOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
-import type { ApiResponse } from "@/types";
+import { type ApiResponse, Role } from "@/types";
 
 interface OnboardManufacturerData {
   userId: string;
@@ -81,11 +81,10 @@ export async function onboardManufacturer({
           userId,
         );
       }
-    } catch (uploadError: any) {
-      console.error("Upload failed:", uploadError);
+    } catch (uploadError) {
       return {
         success: false,
-        message: "Failed to upload files. " + uploadError.message,
+        message: "Failed to upload files.",
       };
     }
 
@@ -110,15 +109,12 @@ export async function onboardManufacturer({
       .eq("id", userId);
 
     if (updateError) {
-      console.error("DB update error:", updateError);
       return { success: false, message: "Failed to save data." };
     }
 
     await createSession({
       userId,
-      email: existingUser.email,
-      role: "MANUFACTURER",
-      isOnboarded: true,
+      role: Role.MANUFACTURER,
     });
 
     return {

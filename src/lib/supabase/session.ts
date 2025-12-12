@@ -7,14 +7,14 @@ const JWT_SECRET =
   process.env.JWT_SECRET || "b3a7a03fd2b3813fc8c7e361644b62b612af2d1c";
 
 const COOKIE_NAMES: Record<string, string> = {
-  ADMIN: "admin-token",
-  MANUFACTURER: "manufacturer-token",
-  DEALER: "dealer-token",
-  CUSTOMER: "customer-token",
+  ADMIN: "a-session",
+  MANUFACTURER: "m-session",
+  DEALER: "d-session",
+  CUSTOMER: "c-session",
 };
 
 function getCookieName(role: string): string {
-  return COOKIE_NAMES[role] || "auth-token";
+  return COOKIE_NAMES[role] || "auth-session";
 }
 
 export async function createSession(data: SessionData) {
