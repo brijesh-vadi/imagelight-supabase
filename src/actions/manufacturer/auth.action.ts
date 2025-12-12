@@ -9,7 +9,12 @@ import {
   signInSchema,
   signupSchema,
 } from "@/schema/manufacturer/auth";
-import { type ApiResponse, type ManufacturerUser, Role } from "@/types";
+import {
+  type ApiResponse,
+  type Manufacturer,
+  type ManufacturerUser,
+  Role,
+} from "@/types";
 
 const supabase = createClient();
 
@@ -138,6 +143,61 @@ export async function signInManufacturer(
     return {
       success: false,
       message: "Something went wrong. Please try again.",
+    };
+  }
+}
+
+export async function getManufacturerProfile(
+  userId: string,
+): Promise<ApiResponse<Manufacturer>> {
+  try {
+    const { data, error } = await supabase
+      .from("manufacturer")
+      .select(
+        `
+        id,
+        email,
+        mobile,
+        company_name,
+        company_logo,
+        contact_person,
+        business_type,
+        website,
+        gst_number,
+        company_description,
+        verification_document,
+        address,
+        city,
+        state,
+        pincode,
+        is_onboarded,
+        is_verified,
+        is_active,
+        is_email_verified,
+        is_mobile_verified,
+        created_at,
+        updated_at
+      `,
+      )
+      .eq("id", userId)
+      .single();
+
+    if (error || !data) {
+      return {
+        success: false,
+        message: "Manufacturer profile not found.",
+      };
+    }
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (err) {
+    console.error("Get profile error:", err);
+    return {
+      success: false,
+      message: "Failed to fetch profile.",
     };
   }
 }

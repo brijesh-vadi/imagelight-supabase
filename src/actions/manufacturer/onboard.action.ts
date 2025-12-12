@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import { createSession } from "@/lib/supabase/session";
 import { uploadDocument, uploadImage } from "@/lib/upload";
 import {
@@ -9,10 +9,7 @@ import {
 } from "@/schema/manufacturer/onboard";
 import type { ApiResponse } from "@/types";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-);
+const supabase = createClient();
 
 interface OnboardManufacturerData {
   userId: string;
@@ -146,56 +143,6 @@ export async function onboardManufacturer({
     return {
       success: false,
       message: "Something went wrong. Please try again.",
-    };
-  }
-}
-
-export async function getManufacturerProfile(
-  userId: string,
-): Promise<ApiResponse<any>> {
-  try {
-    const { data, error } = await supabase
-      .from("manufacturer")
-      .select(
-        `
-        id,
-        email,
-        mobile,
-        company_name,
-        company_logo,
-        contact_person,
-        website,
-        gst_number,
-        company_description,
-        address,
-        city,
-        state,
-        pincode,
-        is_onboarded,
-        is_verified,
-        is_active,
-        created_at
-      `,
-      )
-      .eq("id", userId)
-      .single();
-
-    if (error || !data) {
-      return {
-        success: false,
-        message: "Profile not found.",
-      };
-    }
-
-    return {
-      success: true,
-      data,
-    };
-  } catch (err) {
-    console.error("Get profile error:", err);
-    return {
-      success: false,
-      message: "Failed to fetch profile.",
     };
   }
 }
