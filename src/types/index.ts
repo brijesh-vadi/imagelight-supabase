@@ -1,3 +1,9 @@
+export type ApplicationStatus =
+  | "PENDING"
+  | "IN_REVIEW"
+  | "APPROVED"
+  | "REJECTED";
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
@@ -64,4 +70,45 @@ export interface Unit {
   manufacturer_id: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ManufacturerApplication {
+  id: string;
+  manufacturer_id: string;
+
+  status: ApplicationStatus;
+  current_status_since: string;
+
+  admin_feedback: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+
+  submission_count: number;
+  last_submitted_at: string;
+
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TimelineEntry {
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: React.ComponentType;
+  dotColor: string;
+  isCurrent: boolean;
+}
+
+export interface ApplicationStatusHistory {
+  id: string;
+  application_id: string;
+
+  status: ApplicationStatus;
+  message: string | null;
+  changed_by_role: Role.ADMIN | Role.MANUFACTURER;
+  changed_by: string | null;
+
+  created_at: string;
+
+  admin?: Admin[] | null;
 }

@@ -11,7 +11,7 @@ import {
   type ManufacturerOnboardingForm,
   manufacturerOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
-import { type ApiResponse, Role } from "@/types";
+import { type ApiResponse, type ManufacturerApplication, Role } from "@/types";
 
 interface OnboardManufacturerData {
   userId: string;
@@ -112,6 +112,19 @@ export async function onboardManufacturer({
       return { success: false, message: "Failed to save data." };
     }
 
+    await supabase
+      .from("manufacturer_application")
+      .upsert(
+        {
+          manufacturer_id: userId,
+          status: "PENDING",
+          last_submitted_at: new Date().toISOString(),
+          submission_count: 1,
+        },
+        { onConflict: "manufacturer_id" },
+      )
+      .select();
+
     await createSession({
       userId,
       role: Role.MANUFACTURER,
@@ -127,6 +140,50 @@ export async function onboardManufacturer({
     return {
       success: false,
       message: "Something went wrong. Please try again.",
+    };
+  }
+}
+
+export async function getManufacturerApplication(
+  manufacturerId: string,
+): Promise<ApiResponse<ManufacturerApplication>> {
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("manufacturer_application")
+      .select(`
+        id,
+        manufacturer_id,
+        status,
+        current_status_since,
+        admin_feedback,
+        reviewed_by,
+        reviewed_at,
+        submission_count,
+        last_submitted_at,
+        created_at,
+        updated_at
+      `)
+      .eq("manufacturer_id", manufacturerId)
+      .single();
+
+    if (error || !data) {
+      return {
+        success: false,
+        message: "Application not found.",
+      };
+    }
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (err) {
+    console.error("getManufacturerApplication error:", err);
+    return {
+      success: false,
+      message: "Failed to fetch application.",
     };
   }
 }
