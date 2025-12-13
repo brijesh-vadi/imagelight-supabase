@@ -1,7 +1,9 @@
 import {
   AlertCircle,
   CheckCircle,
+  CheckCircle2,
   Clock,
+  Eye,
   type LucideIcon,
   RefreshCw,
   XCircle,
@@ -38,14 +40,14 @@ const statusConfig: Record<
     description:
       "We have received your application. Admin will review it soon.",
     icon: Clock,
-    color: "text-yellow-600 bg-yellow-50",
+    color: "text-yellow-600 bg-yellow-100",
     dot: "bg-yellow-500",
   },
   in_review: {
     label: "Under Review",
-    description: "An admin is currently reviewing your documents.",
-    icon: RefreshCw,
-    color: "text-blue-600 bg-blue-50",
+    description: "An admin is currently reviewing your application.",
+    icon: Eye,
+    color: "text-blue-600 bg-blue-100",
     dot: "bg-blue-500",
     spinning: true,
   },
@@ -54,14 +56,14 @@ const statusConfig: Record<
     description:
       "Your application was rejected. Please check feedback and resubmit.",
     icon: XCircle,
-    color: "text-red-600 bg-red-50",
+    color: "text-red-600 bg-red-100",
     dot: "bg-red-500",
   },
   approved: {
     label: "Approved!",
     description: "Congratulations! Your account is now fully verified.",
-    icon: CheckCircle,
-    color: "text-green-600 bg-green-50",
+    icon: CheckCircle2,
+    color: "text-green-600 bg-green-100",
     dot: "bg-green-500",
   },
 };
@@ -80,25 +82,30 @@ export default async function ManufacturerApplicationStatus({
   const config = statusConfig[currentStatus] || statusConfig.pending;
 
   const timelineEntries = history?.map((entry: ApplicationHistoryEntry) => {
-    const admin = entry.admin;
-    let description = "";
+    const statusKey = entry.status.toLowerCase();
+    const entryConfig = statusConfig[statusKey];
 
-    if (entry.message) {
+    let description = "";
+    if (entry.status.toUpperCase() === "REJECTED" && entry.message) {
       description = entry.message;
-    } else if (admin) {
-      description = `Updated by ${admin[0].username || "Admin"}`;
+    } else if (entryConfig) {
+      description = entryConfig.description;
     } else {
-      description = "Application submitted";
+      description = "Status updated";
+    }
+
+    const admin = entry.admin && entry.admin.length > 0 ? entry.admin[0] : null;
+    if (admin && entry.status.toUpperCase() !== "PENDING") {
+      description += ` — Updated by ${admin.username || "Admin"}`;
     }
 
     return {
-      title: statusConfig[entry.status]?.label || entry.status,
+      title: entryConfig?.label || entry.status,
       description,
       timestamp: entry.created_at,
-      icon: statusConfig[entry.status]?.icon || AlertCircle,
-      dotColor: statusConfig[entry.status]?.dot || "bg-gray-400",
-      spinning: statusConfig[entry.status]?.spinning,
-      isCurrent: entry.status === currentStatus,
+      icon: entryConfig?.icon || AlertCircle,
+      dotColor: entryConfig?.dot || "bg-gray-400",
+      isCurrent: statusKey === currentStatus.toLowerCase(),
     };
   });
 
@@ -106,8 +113,8 @@ export default async function ManufacturerApplicationStatus({
     <div className="mx-auto max-w-7xl flex items-center justify-center h-screen">
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Left Card: Company Details + Current Status */}
-        <Card className="flex flex-col overflow-hidden shadow-md">
-          <CardHeader className="shrink-0 gap-0 border-b">
+        <Card className="flex flex-col overflow-hidden p-0 gap-0 h-[70vh]">
+          <CardHeader className="shrink-0 gap-0 border-b bg-muted p-4">
             <div className="space-y-1 text-center">
               <CardTitle className="font-semibold text-2xl text-primary">
                 {config.label}
@@ -117,7 +124,7 @@ export default async function ManufacturerApplicationStatus({
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 space-y-8 overflow-y-auto px-6 pt-6 pb-6">
+          <CardContent className="flex-1 space-y-8 overflow-scroll px-6 pt-6 pb-6">
             {/* Company Logo + Name */}
             <div className="flex items-center justify-between">
               <div className="flex w-fit items-center gap-4">
@@ -125,6 +132,7 @@ export default async function ManufacturerApplicationStatus({
                   <AvatarImage
                     src={manufacturer.company_logo || ""}
                     alt={manufacturer.company_name || "Company"}
+                    className="object-cover"
                   />
                   <AvatarFallback>
                     {manufacturer.company_name?.[0] || "C"}
@@ -157,11 +165,28 @@ export default async function ManufacturerApplicationStatus({
                   {manufacturer.website || "-"}
                 </span>
               </div>
+              <div className="flex items-center gap-2 font-medium text-sm">
+                <Label>City :</Label>
+                <span className="text-muted-foreground">
+                  {manufacturer.city || "-"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 font-medium text-sm">
+                <Label>State :</Label>
+                <span className="text-muted-foreground">
+                  {manufacturer.state || "-"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 font-medium text-sm">
+                <Label>Pincode :</Label>
+                <span className="text-muted-foreground">
+                  {manufacturer.pincode || "-"}
+                </span>
+              </div>
               <div className="flex items-start gap-2 font-medium text-sm">
                 <Label className="whitespace-nowrap">Address :</Label>
                 <span className="min-w-0 flex-1 break-words text-muted-foreground">
-                  {manufacturer.address}, {manufacturer.city},{" "}
-                  {manufacturer.state} - {manufacturer.pincode}
+                  {manufacturer.address}
                 </span>
               </div>
               <div className="flex items-start gap-2 font-medium text-sm">
@@ -175,14 +200,14 @@ export default async function ManufacturerApplicationStatus({
         </Card>
 
         {/* Right Card: Timeline */}
-        <Card className="shadow-lg">
-          <CardHeader className="border-b bg-muted/30 text-center">
+        <Card className="overflow-hidden p-0 gap-0 h-[70vh]">
+          <CardHeader className="border-b bg-muted text-center p-4">
             <CardTitle className="text-2xl">Application Timeline</CardTitle>
             <CardDescription>
               Track every step of your verification journey
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 overflow-scroll">
             {timelineEntries?.length === 0 ? (
               <p className="text-center text-muted-foreground">
                 No timeline events yet.
@@ -201,19 +226,13 @@ export default async function ManufacturerApplicationStatus({
                       className={cn(
                         "z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-8 ring-background",
                         entry.dotColor,
-                        entry.isCurrent && "ring-primary/30 animate-pulse",
                       )}
                     >
-                      <entry.icon
-                        className={cn(
-                          "h-5 w-5 text-white",
-                          entry.spinning && "animate-spin",
-                        )}
-                      />
+                      <entry.icon className={cn("h-5 w-5 text-white")} />
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 pb-8">
+                    <div className="flex-1 pb-2">
                       <div className="flex items-center justify-between">
                         <h3
                           className={cn(

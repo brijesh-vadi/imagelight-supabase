@@ -179,7 +179,7 @@ const ApplicationActions = ({ manufacturerId, applicationStatus }: Props) => {
               onClick={handleRejectApplication}
               disabled={loadingAction !== null || !rejectionReason.trim()}
             >
-              Reject {loadingAction === "APPROVE" && <Spinner />}
+              Reject {loadingAction === "REJECT" && <Spinner />}
             </Button>
           </DialogFooter>
         </DialogContent>

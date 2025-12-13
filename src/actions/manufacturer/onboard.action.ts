@@ -119,9 +119,7 @@ export async function onboardManufacturer({
       return { success: false, message: "Failed to save data." };
     }
 
-    console.log("About to insert pending history for user:", userId);
-
-    const { data: historyData, error: historyError } = await supabase
+    await supabase
       .from("manufacturer_application_history")
       .insert({
         manufacturer_id: userId,
@@ -130,12 +128,6 @@ export async function onboardManufacturer({
         message: null,
       })
       .select();
-
-    if (historyError) {
-      console.error("History insert failed:", historyError);
-    } else {
-      console.log("History inserted successfully:", historyData);
-    }
 
     await createSession({
       userId,
@@ -169,7 +161,6 @@ export async function getManufacturerApplicationStatus(
       .single();
 
     if (manufacturerError || !manufacturer) {
-      console.error("Failed to fetch manufacturer status:", manufacturerError);
       return {
         success: false,
         message: "Failed to load application status.",

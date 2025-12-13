@@ -56,8 +56,6 @@ export async function signupManufacturer(
       .select("id, email, mobile, is_onboarded")
       .single();
 
-    console.log("insertError", insertError);
-
     if (insertError) {
       return {
         success: false,
