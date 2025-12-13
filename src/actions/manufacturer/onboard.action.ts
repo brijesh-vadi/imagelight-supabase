@@ -11,7 +11,13 @@ import {
   type ManufacturerOnboardingForm,
   manufacturerOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
-import { type ApiResponse, type ManufacturerApplication, Role } from "@/types";
+import {
+  type ApiResponse,
+  type ApplicationHistoryEntry,
+  type ApplicationStatus,
+  type ApplicationStatusData,
+  Role,
+} from "@/types";
 
 interface OnboardManufacturerData {
   userId: string;
@@ -104,6 +110,7 @@ export async function onboardManufacturer({
         verification_document: verificationDocumentPath,
         business_type: "manufacturer",
         is_onboarded: true,
+        application_status: "PENDING",
         updated_at: new Date().toISOString(),
       })
       .eq("id", userId);
@@ -112,18 +119,23 @@ export async function onboardManufacturer({
       return { success: false, message: "Failed to save data." };
     }
 
-    await supabase
-      .from("manufacturer_application")
-      .upsert(
-        {
-          manufacturer_id: userId,
-          status: "PENDING",
-          last_submitted_at: new Date().toISOString(),
-          submission_count: 1,
-        },
-        { onConflict: "manufacturer_id" },
-      )
+    console.log("About to insert pending history for user:", userId);
+
+    const { data: historyData, error: historyError } = await supabase
+      .from("manufacturer_application_history")
+      .insert({
+        manufacturer_id: userId,
+        status: "PENDING",
+        admin_id: null,
+        message: null,
+      })
       .select();
+
+    if (historyError) {
+      console.error("History insert failed:", historyError);
+    } else {
+      console.log("History inserted successfully:", historyData);
+    }
 
     await createSession({
       userId,
@@ -144,46 +156,97 @@ export async function onboardManufacturer({
   }
 }
 
-export async function getManufacturerApplication(
+export async function getManufacturerApplicationStatus(
   manufacturerId: string,
-): Promise<ApiResponse<ManufacturerApplication>> {
+): Promise<ApiResponse<ApplicationStatusData>> {
   const supabase = await createClient();
 
   try {
-    const { data, error } = await supabase
-      .from("manufacturer_application")
-      .select(`
-        id,
-        manufacturer_id,
-        status,
-        current_status_since,
-        admin_feedback,
-        reviewed_by,
-        reviewed_at,
-        submission_count,
-        last_submitted_at,
-        created_at,
-        updated_at
-      `)
-      .eq("manufacturer_id", manufacturerId)
+    const { data: manufacturer, error: manufacturerError } = await supabase
+      .from("manufacturer")
+      .select("application_status, is_onboarded")
+      .eq("id", manufacturerId)
       .single();
 
-    if (error || !data) {
+    if (manufacturerError || !manufacturer) {
+      console.error("Failed to fetch manufacturer status:", manufacturerError);
       return {
         success: false,
-        message: "Application not found.",
+        message: "Failed to load application status.",
+      };
+    }
+
+    if (!manufacturer.is_onboarded) {
+      return {
+        success: true,
+        data: {
+          currentStatus: null,
+          history: [],
+        },
+      };
+    }
+
+    const historyResult =
+      await getManufacturerApplicationHistory(manufacturerId);
+
+    return {
+      success: true,
+      data: {
+        currentStatus: manufacturer.application_status as ApplicationStatus,
+        history: historyResult.data ?? [],
+      },
+    };
+  } catch (err) {
+    console.error("Unexpected error in getManufacturerApplicationStatus:", err);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again.",
+    };
+  }
+}
+
+export async function getManufacturerApplicationHistory(
+  manufacturerId: string,
+): Promise<ApiResponse<ApplicationHistoryEntry[]>> {
+  const supabase = await createClient();
+
+  try {
+    const { data: history, error } = await supabase
+      .from("manufacturer_application_history")
+      .select(`
+        id,
+        status,
+        message,
+        created_at,
+        admin:admin_id (
+            id,
+            username,
+            email,
+            mobile,
+            profile_image,
+            created_at,
+            updated_at
+          )
+      `)
+      .eq("manufacturer_id", manufacturerId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      return {
+        success: false,
+        message: "Failed to fetch application history.",
       };
     }
 
     return {
       success: true,
-      data,
+      data: history ?? [],
     };
   } catch (err) {
-    console.error("getManufacturerApplication error:", err);
+    console.error("Get application history error:", err);
     return {
       success: false,
-      message: "Failed to fetch application.",
+      message: "Something went wrong. Please try again.",
     };
   }
 }

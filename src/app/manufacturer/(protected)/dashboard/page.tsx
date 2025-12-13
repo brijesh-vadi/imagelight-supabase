@@ -1,27 +1,38 @@
 import { getManufacturerProfile } from "@/actions/manufacturer/auth.action";
-import { getManufacturerApplication } from "@/actions/manufacturer/onboard.action";
+import { getManufacturerApplicationStatus } from "@/actions/manufacturer/onboard.action";
 import ManufacturerApplicationStatus from "@/components/role/manufacturer/view/onboard/ManufacturerApplicationStatus";
 import ManufacturerOnboardModal from "@/components/role/manufacturer/view/onboard/ManufacturerOnboardModal";
 import { getSession } from "@/lib/supabase/session";
+import type { ApplicationHistoryEntry, ApplicationStatus } from "@/types";
 
 const ManufacturerDashboardPage = async () => {
   const session = await getSession();
 
-  const { data: manufacturer } = await getManufacturerProfile(session?.userId!);
+  if (!session) return;
 
-  const { data: application } = await getManufacturerApplication(
-    session?.userId!,
-  );
+  const { data: manufacturer } = await getManufacturerProfile(session?.userId);
+
+  const { data: applicationStatusData } =
+    await getManufacturerApplicationStatus(session.userId);
 
   if (!manufacturer?.is_onboarded) {
     return <ManufacturerOnboardModal userId={manufacturer?.id ?? ""} />;
   }
 
-  if (!application || application.status !== "APPROVED") {
+  const currentStatus: ApplicationStatus =
+    applicationStatusData?.currentStatus ?? "PENDING";
+
+  const history: ApplicationHistoryEntry[] =
+    applicationStatusData?.history ?? [];
+  if (
+    !applicationStatusData ||
+    applicationStatusData.currentStatus !== "APPROVED"
+  ) {
     return (
       <ManufacturerApplicationStatus
         manufacturer={manufacturer}
-        currentStatus={application?.status || "PENDING"}
+        currentStatus={currentStatus}
+        history={history}
       />
     );
   }

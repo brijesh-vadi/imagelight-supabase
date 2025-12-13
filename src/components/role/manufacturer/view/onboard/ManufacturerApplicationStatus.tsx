@@ -2,6 +2,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  type LucideIcon,
   RefreshCw,
   XCircle,
 } from "lucide-react";
@@ -14,22 +15,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/server";
 import { cn, formatDate } from "@/lib/utils";
-import type { Manufacturer } from "@/types";
+import type {
+  ApplicationHistoryEntry,
+  ApplicationStatus,
+  Manufacturer,
+} from "@/types";
 
 const statusConfig: Record<
   string,
   {
     label: string;
     description: string;
-    icon: any;
+    icon: LucideIcon;
     color: string;
     dot: string;
     spinning?: boolean;
   }
 > = {
-  PENDING: {
+  pending: {
     label: "Pending Review",
     description:
       "We have received your application. Admin will review it soon.",
@@ -37,7 +41,7 @@ const statusConfig: Record<
     color: "text-yellow-600 bg-yellow-50",
     dot: "bg-yellow-500",
   },
-  IN_REVIEW: {
+  in_review: {
     label: "Under Review",
     description: "An admin is currently reviewing your documents.",
     icon: RefreshCw,
@@ -45,7 +49,7 @@ const statusConfig: Record<
     dot: "bg-blue-500",
     spinning: true,
   },
-  REJECTED: {
+  rejected: {
     label: "Application Rejected",
     description:
       "Your application was rejected. Please check feedback and resubmit.",
@@ -53,7 +57,7 @@ const statusConfig: Record<
     color: "text-red-600 bg-red-50",
     dot: "bg-red-500",
   },
-  APPROVED: {
+  approved: {
     label: "Approved!",
     description: "Congratulations! Your account is now fully verified.",
     icon: CheckCircle,
@@ -64,52 +68,36 @@ const statusConfig: Record<
 
 interface Props {
   manufacturer: Manufacturer;
-  currentStatus: string;
+  currentStatus: ApplicationStatus;
+  history: ApplicationHistoryEntry[];
 }
 
 export default async function ManufacturerApplicationStatus({
   manufacturer,
   currentStatus,
+  history,
 }: Props) {
-  const supabase = await createClient();
+  const config = statusConfig[currentStatus] || statusConfig.pending;
 
-  const { data: app } = await supabase
-    .from("manufacturer_application")
-    .select("id")
-    .eq("manufacturer_id", manufacturer.id)
-    .single();
+  const timelineEntries = history?.map((entry: ApplicationHistoryEntry) => {
+    const admin = entry.admin;
+    let description = "";
 
-  if (!app?.id) {
-    return <div>Error loading application.</div>;
-  }
-
-  const { data: history = [] } = await supabase
-    .from("manufacturer_application_status_history")
-    .select(`
-      status,
-      message,
-      created_at,
-      changed_by_role,
-      admin:changed_by (username, profile_image)
-    `)
-    .eq("application_id", app.id)
-    .order("created_at", { ascending: true });
-
-  const config = statusConfig[currentStatus] || statusConfig.PENDING;
-
-  const timelineEntries = (history ?? []).map((entry) => {
-    const admin = entry.admin && entry.admin.length > 0 ? entry.admin[0] : null;
+    if (entry.message) {
+      description = entry.message;
+    } else if (admin) {
+      description = `Updated by ${admin[0].username || "Admin"}`;
+    } else {
+      description = "Application submitted";
+    }
 
     return {
       title: statusConfig[entry.status]?.label || entry.status,
-      description:
-        entry.message ||
-        (entry.changed_by_role === "admin"
-          ? `Updated by ${admin?.username || "Admin"}`
-          : "Application submitted"),
+      description,
       timestamp: entry.created_at,
       icon: statusConfig[entry.status]?.icon || AlertCircle,
       dotColor: statusConfig[entry.status]?.dot || "bg-gray-400",
+      spinning: statusConfig[entry.status]?.spinning,
       isCurrent: entry.status === currentStatus,
     };
   });
@@ -117,7 +105,7 @@ export default async function ManufacturerApplicationStatus({
   return (
     <div className="mx-auto max-w-7xl flex items-center justify-center h-screen">
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Left Card 1: Company Details + Status */}
+        {/* Left Card: Company Details + Current Status */}
         <Card className="flex flex-col overflow-hidden shadow-md">
           <CardHeader className="shrink-0 gap-0 border-b">
             <div className="space-y-1 text-center">
@@ -129,9 +117,8 @@ export default async function ManufacturerApplicationStatus({
               </CardDescription>
             </div>
           </CardHeader>
-
           <CardContent className="flex-1 space-y-8 overflow-y-auto px-6 pt-6 pb-6">
-            {/* Company Info */}
+            {/* Company Logo + Name */}
             <div className="flex items-center justify-between">
               <div className="flex w-fit items-center gap-4">
                 <Avatar className="h-12 w-12">
@@ -150,6 +137,7 @@ export default async function ManufacturerApplicationStatus({
               </div>
             </div>
 
+            {/* Company Details */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 font-medium text-sm">
                 <Label>Contact Person :</Label>
@@ -166,31 +154,14 @@ export default async function ManufacturerApplicationStatus({
               <div className="flex items-center gap-2 font-medium text-sm">
                 <Label>Website :</Label>
                 <span className="text-muted-foreground">
-                  {manufacturer.website ? manufacturer.website : "-"}
+                  {manufacturer.website || "-"}
                 </span>
               </div>
               <div className="flex items-start gap-2 font-medium text-sm">
                 <Label className="whitespace-nowrap">Address :</Label>
                 <span className="min-w-0 flex-1 break-words text-muted-foreground">
-                  {manufacturer.address}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
-                <Label>City :</Label>
-                <span className="text-muted-foreground">
-                  {manufacturer.city}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
-                <Label>State :</Label>
-                <span className="text-muted-foreground">
-                  {manufacturer.state}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
-                <Label>Pincode :</Label>
-                <span className="text-muted-foreground">
-                  {manufacturer.pincode}
+                  {manufacturer.address}, {manufacturer.city},{" "}
+                  {manufacturer.state} - {manufacturer.pincode}
                 </span>
               </div>
               <div className="flex items-start gap-2 font-medium text-sm">
@@ -203,7 +174,7 @@ export default async function ManufacturerApplicationStatus({
           </CardContent>
         </Card>
 
-        {/* Card 2: Timeline */}
+        {/* Right Card: Timeline */}
         <Card className="shadow-lg">
           <CardHeader className="border-b bg-muted/30 text-center">
             <CardTitle className="text-2xl">Application Timeline</CardTitle>
@@ -212,45 +183,58 @@ export default async function ManufacturerApplicationStatus({
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="space-y-8">
-              {timelineEntries?.map((entry, index) => (
-                <div key={`${entry.timestamp}`} className="relative flex gap-4">
-                  {/* Connecting line */}
-                  {index < timelineEntries.length - 1 && (
-                    <div className="absolute left-5 top-10 h-full w-0.5 bg-border" />
-                  )}
-
-                  {/* Dot */}
-                  <div
-                    className={cn(
-                      "z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-8 ring-background",
-                      entry.dotColor,
-                      entry.isCurrent && "ring-primary/30",
+            {timelineEntries?.length === 0 ? (
+              <p className="text-center text-muted-foreground">
+                No timeline events yet.
+              </p>
+            ) : (
+              <div className="space-y-8">
+                {timelineEntries?.map((entry, index) => (
+                  <div key={entry.timestamp} className="relative flex gap-4">
+                    {/* Connecting line */}
+                    {index < timelineEntries?.length - 1 && (
+                      <div className="absolute left-5 top-10 h-full w-0.5 bg-border" />
                     )}
-                  >
-                    <entry.icon className="h-5 w-5 text-white" />
-                  </div>
 
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3
+                    {/* Dot + Icon */}
+                    <div
                       className={cn(
-                        "font-semibold",
-                        entry.isCurrent && "text-primary",
+                        "z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-8 ring-background",
+                        entry.dotColor,
+                        entry.isCurrent && "ring-primary/30 animate-pulse",
                       )}
                     >
-                      {entry.title}
-                    </h3>
-                    <time className="text-xs text-muted-foreground">
-                      {formatDate(new Date(entry.timestamp))}
-                    </time>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {entry.description}
-                    </p>
+                      <entry.icon
+                        className={cn(
+                          "h-5 w-5 text-white",
+                          entry.spinning && "animate-spin",
+                        )}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 pb-8">
+                      <div className="flex items-center justify-between">
+                        <h3
+                          className={cn(
+                            "font-semibold",
+                            entry.isCurrent && "text-primary",
+                          )}
+                        >
+                          {entry.title}
+                        </h3>
+                        <time className="text-xs text-muted-foreground">
+                          {formatDate(new Date(entry.timestamp))}
+                        </time>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {entry.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

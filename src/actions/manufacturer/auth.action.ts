@@ -174,6 +174,7 @@ export async function getManufacturerProfile(
         is_onboarded,
         is_verified,
         is_active,
+        application_status,
         is_email_verified,
         is_mobile_verified,
         created_at,
