@@ -3,10 +3,14 @@ import { getManufacturerApplicationStatus } from "@/actions/manufacturer/onboard
 import ManufacturerApplicationStatus from "@/components/role/manufacturer/view/onboard/ManufacturerApplicationStatus";
 import ManufacturerOnboardModal from "@/components/role/manufacturer/view/onboard/ManufacturerOnboardModal";
 import { getSession } from "@/lib/supabase/session";
-import type { ApplicationHistoryEntry, ApplicationStatus } from "@/types";
+import {
+  type ApplicationHistoryEntry,
+  type ApplicationStatus,
+  Role,
+} from "@/types";
 
 const ManufacturerDashboardPage = async () => {
-  const session = await getSession();
+  const session = await getSession(Role.MANUFACTURER);
 
   if (!session) return;
 

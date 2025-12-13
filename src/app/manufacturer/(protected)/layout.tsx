@@ -1,13 +1,14 @@
 import { getManufacturerProfile } from "@/actions/manufacturer/auth.action";
 import ManufacturerSidebar from "@/components/role/manufacturer/shared/ManufacturerSidebar";
 import { getSession } from "@/lib/supabase/session";
+import { Role } from "@/types";
 
 export default async function ManufacturerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
+  const session = await getSession(Role.MANUFACTURER);
   const { data: manufacturer } = await getManufacturerProfile(
     session?.userId ?? "",
   );

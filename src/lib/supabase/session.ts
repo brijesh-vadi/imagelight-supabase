@@ -1,7 +1,7 @@
 "use server";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import type { SessionData } from "@/types";
+import type { Role, SessionData } from "@/types";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "b3a7a03fd2b3813fc8c7e361644b62b612af2d1c";
@@ -36,7 +36,7 @@ export async function createSession(data: SessionData) {
   return token;
 }
 
-export async function getSession(role?: string): Promise<SessionData | null> {
+export async function getSession(role: Role): Promise<SessionData | null> {
   try {
     const cookieStore = await cookies();
 
@@ -76,7 +76,7 @@ export async function destroySession(role: string) {
   cookieStore.delete(cookieName);
 }
 
-export async function getCurrentUser(role?: string): Promise<SessionData> {
+export async function getCurrentUser(role: Role): Promise<SessionData> {
   const session = await getSession(role);
 
   if (!session) {
@@ -86,7 +86,7 @@ export async function getCurrentUser(role?: string): Promise<SessionData> {
   return session;
 }
 
-export async function hasRole(role: string): Promise<boolean> {
+export async function hasRole(role: Role): Promise<boolean> {
   const session = await getSession(role);
   return session?.role === role;
 }

@@ -1,13 +1,12 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/supabase/session";
 import { type UnitForm, unitSchema } from "@/schema/manufacturer/unit";
-import type { ApiResponse, Unit } from "@/types";
+import { type ApiResponse, Role, type Unit } from "@/types";
 
 export async function addUnit(data: UnitForm): Promise<ApiResponse<Unit>> {
-  const session = await getSession();
+  const session = await getSession(Role.MANUFACTURER);
   const supabase = await createClient();
   try {
     const parsed = unitSchema.safeParse(data);
@@ -52,7 +51,7 @@ export async function addUnit(data: UnitForm): Promise<ApiResponse<Unit>> {
 
 export async function getUnits(): Promise<ApiResponse<Unit[]>> {
   try {
-    const session = await getSession();
+    const session = await getSession(Role.MANUFACTURER);
     const supabase = await createClient();
 
     if (!session?.userId) {
@@ -88,7 +87,7 @@ export async function getUnits(): Promise<ApiResponse<Unit[]>> {
 
 export async function deleteUnit(unitId: string): Promise<ApiResponse<null>> {
   try {
-    const session = await getSession();
+    const session = await getSession(Role.MANUFACTURER);
     const supabase = await createClient();
 
     const { data: unit, error: fetchError } = await supabase
@@ -133,7 +132,7 @@ export async function updateUnit(
   data: UnitForm,
 ): Promise<ApiResponse<Unit>> {
   try {
-    const session = await getSession();
+    const session = await getSession(Role.MANUFACTURER);
     const supabase = await createClient();
 
     const parsed = unitSchema.safeParse(data);

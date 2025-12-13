@@ -1,0 +1,191 @@
+"use client";
+
+import { Eye } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  approveManufacturerApplication,
+  rejectManufacturerApplication,
+  startManufacturerReview,
+} from "@/actions/admin/applications.action";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import type { ApplicationStatus } from "@/types";
+
+type ActionType = "START_REVIEW" | "APPROVE" | "REJECT" | null;
+
+interface Props {
+  manufacturerId: string;
+  applicationStatus?: ApplicationStatus | null;
+}
+
+const ApplicationActions = ({ manufacturerId, applicationStatus }: Props) => {
+  const [loadingAction, setLoadingAction] = useState<ActionType>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+
+  if (applicationStatus === "APPROVED" || applicationStatus === "REJECTED") {
+    return null;
+  }
+
+  const handleStartReview = async () => {
+    setLoadingAction("START_REVIEW");
+    try {
+      const result = await startManufacturerReview(manufacturerId);
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleApproveApplication = async () => {
+    setLoadingAction("APPROVE");
+    try {
+      const result = await approveManufacturerApplication(manufacturerId);
+      if (result.success) {
+        toast.success(result.message);
+        setApproveDialogOpen(false);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleRejectApplication = async () => {
+    setLoadingAction("REJECT");
+    try {
+      const result = await rejectManufacturerApplication(
+        manufacturerId,
+        rejectionReason,
+      );
+      if (result.success) {
+        toast.success(result.message);
+        setRejectDialogOpen(false);
+        setRejectionReason("");
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  if (applicationStatus === "PENDING") {
+    return (
+      <Button onClick={handleStartReview} disabled={loadingAction !== null}>
+        <Eye className="mr-2 h-4 w-4" />
+        {loadingAction === "START_REVIEW" ? "Starting..." : "Start Review"}
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-3">
+        <Button
+          onClick={() => setApproveDialogOpen(true)}
+          disabled={loadingAction !== null}
+        >
+          Approve {loadingAction === "APPROVE" && <Spinner />}
+        </Button>
+        <Button
+          onClick={() => setRejectDialogOpen(true)}
+          disabled={loadingAction !== null}
+        >
+          Reject
+        </Button>
+      </div>
+
+      <AlertDialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Approve Manufacturer Application?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will approve the manufacturer’s application and grant
+              access to the platform. Please confirm to proceed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApproveApplication}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Application</DialogTitle>
+            <DialogDescription>
+              Provide a reason for rejection. This message will be sent to the
+              manufacturer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Textarea
+              placeholder="Enter rejection reason..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={7}
+              className="h-32"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRejectDialogOpen(false)}
+              disabled={loadingAction !== null}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectApplication}
+              disabled={loadingAction !== null || !rejectionReason.trim()}
+            >
+              Reject {loadingAction === "APPROVE" && <Spinner />}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default ApplicationActions;
