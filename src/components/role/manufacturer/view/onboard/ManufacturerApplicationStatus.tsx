@@ -224,7 +224,7 @@ export default async function ManufacturerApplicationStatus({
                           {entry.title}
                         </h3>
                         <time className="text-xs text-muted-foreground">
-                          {formatDate(new Date(entry.timestamp))}
+                          {formatDate(entry.timestamp)}
                         </time>
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">

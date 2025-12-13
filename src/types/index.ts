@@ -85,3 +85,8 @@ export interface ApplicationStatusData {
   currentStatus: ApplicationStatus | null;
   history: ApplicationHistoryEntry[];
 }
+
+export interface Pagination {
+  page: number;
+  limit: number;
+}

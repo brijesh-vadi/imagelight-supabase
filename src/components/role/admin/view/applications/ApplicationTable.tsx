@@ -1,0 +1,127 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { formatDate } from "@/lib/utils";
+import type { Manufacturer } from "@/types";
+
+interface Props {
+  manufacturers: Manufacturer[];
+}
+
+const ApplicationsTable = ({ manufacturers }: Props) => {
+  const router = useRouter();
+
+  return (
+    <div className="space-y-4">
+      <Table>
+        <TableHeader className="bg-primary/10">
+          <TableRow>
+            <TableHead className="px-5">Logo</TableHead>
+            <TableHead className="text-center">Company Name</TableHead>
+            <TableHead className="text-center">City</TableHead>
+            <TableHead className="text-center">State</TableHead>
+            <TableHead className="text-center">Application Status</TableHead>
+            <TableHead className="text-center">Verified</TableHead>
+            <TableHead className="text-right">Created At</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {manufacturers.map((manufacturer) => (
+            <TableRow
+              key={manufacturer.id}
+              className="h-16 cursor-pointer"
+              onClick={() =>
+                router.push(`/admin/applications/${manufacturer.id}`)
+              }
+            >
+              <TableCell className="pl-5">
+                <div className="relative overflow-hidden rounded-full">
+                  {manufacturer.company_logo ? (
+                    <Avatar>
+                      <AvatarImage
+                        src={manufacturer.company_logo}
+                        alt={`${manufacturer.company_name} logo`}
+                        className="object-cover"
+                      />
+                      <AvatarFallback>
+                        {manufacturer.company_name?.[0]}
+                        {manufacturer.company_name?.[1]}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted font-semibold text-muted-foreground text-xs">
+                      {manufacturer.company_name?.charAt(0).toUpperCase() ||
+                        "?"}
+                    </div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-center">
+                {manufacturer.company_name || "—"}
+              </TableCell>
+              {/*<TableCell className="text-center">
+                <ApplicationStatusHistory
+                  status={manufacturer.application?.status!}
+                />
+              </TableCell>*/}
+              <TableCell className="text-center">{manufacturer.city}</TableCell>
+              <TableCell className="text-center">
+                {manufacturer.state}
+              </TableCell>
+              <TableCell className="text-center">
+                <ApplicationStatusBadge
+                  status={manufacturer.application_status}
+                />
+              </TableCell>
+              <TableCell className="text-center">
+                {manufacturer.is_verified ? (
+                  <Badge variant="default" className="bg-green-600">
+                    Verified
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">Not Verified</Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                {formatDate(manufacturer.created_at)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
+function ApplicationStatusBadge({ status }: { status?: string | null }) {
+  if (!status) {
+    return <Badge variant="outline">No Application</Badge>;
+  }
+
+  const styles: Record<string, string> = {
+    PENDING: "bg-yellow-100 text-yellow-800",
+    IN_REVIEW: "bg-blue-100 text-blue-800",
+    APPROVED: "bg-green-100 text-green-800",
+    REJECTED: "bg-red-100 text-red-800",
+  };
+
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-800"}`}
+    >
+      {status.replace("_", " ")}
+    </span>
+  );
+}
+
+export default ApplicationsTable;
