@@ -400,9 +400,6 @@ const ManufacturerOnboradUpdateForm = ({
                     <p className="text-xs text-center text-muted-foreground">
                       PNG, JPG up to 2MB · Upload new to replace
                     </p>
-                    {errors.companyLogo?.message && (
-                      <ValidationMessage message={errors.companyLogo.message} />
-                    )}
                   </div>
                   {/* Verification Document */}
                   <div className="space-y-4">
@@ -422,11 +419,6 @@ const ManufacturerOnboradUpdateForm = ({
                       GST certificate, Trade license, or Registration
                       certificate (up to 2MB)
                     </p>
-                    {errors.verificationDocument?.message && (
-                      <ValidationMessage
-                        message={errors.verificationDocument.message}
-                      />
-                    )}
                   </div>
                 </div>
               )}

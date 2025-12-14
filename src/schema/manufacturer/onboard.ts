@@ -38,23 +38,22 @@ const baseSchema = z.object({
   pincode: z.string().regex(/^[1-9][0-9]{5}$/, "Invalid PIN code"),
 });
 
-const requiredFile = z
-  .instanceof(File, { message: "File upload is required" })
-  .refine((file) => file.size > 0, { message: "File cannot be empty" })
-  .nullable(); // ← Add .nullable() to allow null until a file is selected
+const companyLogoSchema = z.any();
+
+const verificationDocSchema = z.any();
 
 const urlString = z.string().min(1, { message: "File is required" });
 
 // 1. First-time Onboarding Schema — MUST upload new files
 export const onboardingSchema = baseSchema.extend({
-  companyLogo: requiredFile,
-  verificationDocument: requiredFile,
+  companyLogo: companyLogoSchema,
+  verificationDocument: verificationDocSchema,
 });
 
 // 2. Resubmit/Update Schema — Accepts existing URL string OR new File
 export const resubmitOnboardingSchema = baseSchema.extend({
-  companyLogo: z.union([requiredFile, urlString]),
-  verificationDocument: z.union([requiredFile, urlString]),
+  companyLogo: z.union([companyLogoSchema, urlString]),
+  verificationDocument: z.union([verificationDocSchema, urlString]),
 });
 
 // Type exports

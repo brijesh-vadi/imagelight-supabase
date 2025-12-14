@@ -64,17 +64,21 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
     formState: { errors },
     reset,
   } = useForm<OnboardingForm>({
-    mode: "onChange",
+    mode: "onSubmit",
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       website: "",
       state: "",
       city: "",
-    },
+      companyLogo: null,
+      verificationDocument: null,
+    } as unknown as OnboardingForm,
   });
 
   const selectedState = watch("state");
   const watchedCity = watch("city");
+  const companyLogo = watch("companyLogo");
+  const verificationDocument = watch("verificationDocument");
 
   const availableCities = useMemo(() => {
     if (!selectedState) return [];
@@ -94,11 +98,11 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
   };
 
   const handleLogoChange = (file: any | null) => {
-    setValue("companyLogo", file?.file || "", { shouldDirty: true });
+    setValue("companyLogo", file?.file || null, { shouldDirty: true });
   };
 
   const handleVerificationDocChange = (file: any | null) => {
-    setValue("verificationDocument", file?.file || "", { shouldDirty: true });
+    setValue("verificationDocument", file?.file || null, { shouldDirty: true });
   };
 
   const handleNext = async () => {
@@ -377,11 +381,9 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                       </p>
                     </div>
                     <div className="w-fit mx-auto">
-                      {errors.companyLogo?.message && (
-                        <ValidationMessage
-                          message={errors.companyLogo.message}
-                        />
-                      )}
+                      <div className="w-fit mx-auto">
+                        {/* Validation message removed */}
+                      </div>
                     </div>
                   </div>
 
@@ -401,11 +403,7 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                         certificate (up to 2MB)
                       </p>
                     </div>
-                    {errors.verificationDocument?.message && (
-                      <ValidationMessage
-                        message={errors.verificationDocument.message}
-                      />
-                    )}
+                    {/* Validation message removed */}
                   </div>
                 </div>
               )}
@@ -432,7 +430,10 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                 Next
               </Button>
             ) : (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting || !companyLogo || !verificationDocument}
+              >
                 {isSubmitting ? "Submitting..." : "Complete Profile"}
               </Button>
             )}
