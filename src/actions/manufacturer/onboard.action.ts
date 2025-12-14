@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { PUBLIC_BUCKET } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
 import {
+  deleteManufacturerFile,
   uploadManufacturerLogo,
   uploadManufacturerVerificationDocument,
 } from "@/lib/supabase/upload";
@@ -165,18 +167,25 @@ export async function updateManufacturerApplication({
   const supabase = await createClient();
 
   try {
-    const { data: existingUser } = await supabase
+    // Fetch current manufacturer data
+    const { data: existingUser, error: fetchError } = await supabase
       .from("manufacturer")
       .select("id, is_onboarded, company_logo, verification_document")
       .eq("id", userId)
       .single();
 
+    if (fetchError || !existingUser) {
+      return { success: false, message: "Manufacturer profile not found." };
+    }
+
+    // Validate form data
     const parsed = resubmitOnboardingSchema.safeParse(data);
     if (!parsed.success) {
       return { success: false, message: "Invalid data provided." };
     }
     const validatedData = parsed.data;
 
+    // Check GST duplicate
     const { data: existingGst } = await supabase
       .from("manufacturer")
       .select("id")
@@ -188,34 +197,90 @@ export async function updateManufacturerApplication({
       return { success: false, message: "GST number is already registered." };
     }
 
-    let companyLogoPath = existingUser?.company_logo;
-    let verificationDocumentPath = existingUser?.verification_document;
+    // Keep existing values by default
+    let companyLogoUrl = existingUser.company_logo; // public URL string (or null)
+    let verificationDocumentPath = existingUser.verification_document; // private path string (or null)
 
-    try {
-      if (
-        validatedData.companyLogo instanceof File &&
-        validatedData.companyLogo.size > 0
-      ) {
-        companyLogoPath = await uploadManufacturerLogo(
+    // Helper: Convert public URL → storage path
+    const publicUrlToPath = (url: string | null | undefined): string | null => {
+      if (!url) return null;
+      try {
+        const parsed = new URL(url);
+        return decodeURIComponent(
+          parsed.pathname.replace(
+            `/storage/v1/object/public/${PUBLIC_BUCKET}/`,
+            "",
+          ),
+        );
+      } catch {
+        console.warn("Invalid logo URL format:", url);
+        return null;
+      }
+    };
+
+    // === Update Company Logo ===
+    if (
+      validatedData.companyLogo instanceof File &&
+      validatedData.companyLogo.size > 0
+    ) {
+      // Delete old logo from PUBLIC bucket
+      if (existingUser.company_logo) {
+        const oldPath = publicUrlToPath(existingUser.company_logo);
+        if (oldPath) {
+          try {
+            await deleteManufacturerFile(oldPath, false); // false = public bucket
+          } catch (err) {
+            console.warn("Failed to delete old logo (continuing anyway):", err);
+            // Don't block update if cleanup fails
+          }
+        }
+      }
+
+      // Upload new logo → returns new public URL
+      try {
+        companyLogoUrl = await uploadManufacturerLogo(
           validatedData.companyLogo,
           userId,
         );
+      } catch (err) {
+        console.error("Failed to upload new logo:", err);
+        return { success: false, message: "Failed to upload company logo." };
+      }
+    }
+
+    // === Update Verification Document ===
+    if (
+      validatedData.verificationDocument instanceof File &&
+      validatedData.verificationDocument.size > 0
+    ) {
+      // Delete old document from PRIVATE bucket
+      if (existingUser.verification_document) {
+        try {
+          await deleteManufacturerFile(
+            existingUser.verification_document,
+            true,
+          ); // true = private bucket
+        } catch (err) {
+          console.warn("Failed to delete old verification document:", err);
+        }
       }
 
-      if (
-        validatedData.verificationDocument instanceof File &&
-        validatedData.verificationDocument.size > 0
-      ) {
+      // Upload new document → returns private path
+      try {
         verificationDocumentPath = await uploadManufacturerVerificationDocument(
           validatedData.verificationDocument,
           userId,
         );
+      } catch (err) {
+        console.error("Failed to upload verification document:", err);
+        return {
+          success: false,
+          message: "Failed to upload verification document.",
+        };
       }
-    } catch (uploadError) {
-      console.error("File upload failed:", uploadError);
-      return { success: false, message: "Failed to upload files." };
     }
 
+    // Update database record
     const { error: updateError } = await supabase
       .from("manufacturer")
       .update({
@@ -228,7 +293,7 @@ export async function updateManufacturerApplication({
         state: validatedData.state,
         city: validatedData.city,
         pincode: validatedData.pincode,
-        company_logo: companyLogoPath,
+        company_logo: companyLogoUrl,
         verification_document: verificationDocumentPath,
         business_type: "manufacturer",
         application_status: "PENDING",
@@ -237,10 +302,11 @@ export async function updateManufacturerApplication({
       .eq("id", userId);
 
     if (updateError) {
-      console.error("Update failed:", updateError);
+      console.error("Database update failed:", updateError);
       return { success: false, message: "Failed to update application." };
     }
 
+    // Record resubmission in history
     await supabase.from("manufacturer_application_history").insert({
       manufacturer_id: userId,
       status: "PENDING",

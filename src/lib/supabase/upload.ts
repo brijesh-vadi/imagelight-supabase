@@ -1,10 +1,8 @@
 "use server";
 
 import { v4 as uuid } from "uuid";
+import { PRIVATE_BUCKET, PUBLIC_BUCKET } from "../constants";
 import { createAdminClient } from "./admin";
-
-const PUBLIC_BUCKET = "manufacturer-assets";
-const PRIVATE_BUCKET = "manufacturer-private";
 
 function generateFileName(originalName: string): string {
   const ext = originalName.split(".").pop() || "";
