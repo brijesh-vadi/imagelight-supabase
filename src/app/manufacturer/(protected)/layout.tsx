@@ -22,11 +22,11 @@ export default async function ManufacturerLayout({
     //   )}
     //   <main className="flex-1 p-4">{children}</main>
     // </div>
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen overflow-hidden ">
       {manufacturer?.is_onboarded && manufacturer?.is_verified ? (
         <div className="flex h-full overflow-hidden bg-background text-foreground">
           <ManufacturerSidebar manufacturer={manufacturer} />
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto p-4">{children}</main>
         </div>
       ) : (
         <main className="h-full overflow-hidden p-4">{children}</main>

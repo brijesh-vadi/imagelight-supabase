@@ -24,7 +24,7 @@ const page = async () => {
       {/* Manufacturers List */}
       <div className="space-y-4">
         {manufacturers?.length === 0 ? (
-          <p className="text-center font-medium">No units found.</p>
+          <p className="text-center font-medium">No applications found.</p>
         ) : (
           <ApplicationsTable manufacturers={manufacturers ?? []} />
         )}

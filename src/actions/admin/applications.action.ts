@@ -80,7 +80,6 @@ export async function getManufacturerById(
   const supabase = await createClient();
 
   try {
-    console.log("Fetching manufacturer with ID:", manufacturerId);
     const { data, error } = await supabase
       .from("manufacturer")
       .select(`

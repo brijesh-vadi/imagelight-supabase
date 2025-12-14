@@ -90,3 +90,12 @@ export interface Pagination {
   page: number;
   limit: number;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  is_active: boolean;
+  manufacturer_id: string;
+  created_at: string;
+  updated_at: string;
+}
