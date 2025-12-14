@@ -1,14 +1,15 @@
+"use client";
 import {
   AlertCircle,
-  CheckCircle,
   CheckCircle2,
   Clock,
   Eye,
   type LucideIcon,
-  RefreshCw,
   XCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import type {
   ApplicationStatus,
   Manufacturer,
 } from "@/types";
+import ManufacturerOnboradUpdateForm from "./ManufacturerOnboradUpdateForm";
 
 const statusConfig: Record<
   string,
@@ -74,11 +76,12 @@ interface Props {
   history: ApplicationHistoryEntry[];
 }
 
-export default async function ManufacturerApplicationStatus({
+const ManufacturerApplicationStatus = ({
   manufacturer,
   currentStatus,
   history,
-}: Props) {
+}: Props) => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const config = statusConfig[currentStatus] || statusConfig.pending;
 
   const timelineEntries = history?.map((entry: ApplicationHistoryEntry) => {
@@ -127,7 +130,7 @@ export default async function ManufacturerApplicationStatus({
           <CardContent className="flex-1 space-y-8 overflow-scroll px-6 pt-6 pb-6">
             {/* Company Logo + Name */}
             <div className="flex items-center justify-between">
-              <div className="flex w-fit items-center gap-4">
+              <div className="flex  items-center gap-4 w-full">
                 <Avatar className="h-12 w-12">
                   <AvatarImage
                     src={manufacturer.company_logo || ""}
@@ -139,9 +142,16 @@ export default async function ManufacturerApplicationStatus({
                     {manufacturer.company_name?.[1] || "O"}
                   </AvatarFallback>
                 </Avatar>
-                <p className="font-semibold text-lg text-muted-foreground">
-                  {manufacturer.company_name}
-                </p>
+                <div className="flex items-center justify-between w-full">
+                  <p className="font-semibold text-lg text-muted-foreground">
+                    {manufacturer.company_name}
+                  </p>
+                  {manufacturer?.application_status === "REJECTED" && (
+                    <Button onClick={() => setIsEditModalOpen(true)}>
+                      Update Application
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -257,6 +267,14 @@ export default async function ManufacturerApplicationStatus({
           </CardContent>
         </Card>
       </div>
+      <ManufacturerOnboradUpdateForm
+        userId={manufacturer.id}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        initialData={manufacturer}
+      />
     </div>
   );
-}
+};
+
+export default ManufacturerApplicationStatus;

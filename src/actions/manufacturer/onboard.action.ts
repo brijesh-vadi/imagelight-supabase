@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
@@ -8,8 +9,10 @@ import {
   uploadManufacturerVerificationDocument,
 } from "@/lib/supabase/upload";
 import {
-  type ManufacturerOnboardingForm,
-  manufacturerOnboardingSchema,
+  type OnboardingForm,
+  onboardingSchema,
+  type ResubmitOnboardingForm,
+  resubmitOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
 import {
   type ApiResponse,
@@ -21,7 +24,12 @@ import {
 
 interface OnboardManufacturerData {
   userId: string;
-  data: ManufacturerOnboardingForm;
+  data: OnboardingForm;
+}
+
+interface ResubmitOnboardManufacturerData {
+  userId: string;
+  data: ResubmitOnboardingForm;
 }
 
 export async function onboardManufacturer({
@@ -46,7 +54,7 @@ export async function onboardManufacturer({
     }
 
     // 2. Validate form data
-    const parsed = manufacturerOnboardingSchema.safeParse(data);
+    const parsed = onboardingSchema.safeParse(data);
     if (!parsed.success) {
       return { success: false, message: "Invalid data provided." };
     }
@@ -141,6 +149,114 @@ export async function onboardManufacturer({
     };
   } catch (err: any) {
     console.error("Unexpected error:", err);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again.",
+    };
+  }
+}
+
+export async function updateManufacturerApplication({
+  userId,
+  data,
+}: ResubmitOnboardManufacturerData): Promise<
+  ApiResponse<{ isOnboarded: boolean }>
+> {
+  const supabase = await createClient();
+
+  try {
+    const { data: existingUser } = await supabase
+      .from("manufacturer")
+      .select("id, is_onboarded, company_logo, verification_document")
+      .eq("id", userId)
+      .single();
+
+    const parsed = resubmitOnboardingSchema.safeParse(data);
+    if (!parsed.success) {
+      return { success: false, message: "Invalid data provided." };
+    }
+    const validatedData = parsed.data;
+
+    const { data: existingGst } = await supabase
+      .from("manufacturer")
+      .select("id")
+      .eq("gst_number", validatedData.gstNumber)
+      .neq("id", userId)
+      .maybeSingle();
+
+    if (existingGst) {
+      return { success: false, message: "GST number is already registered." };
+    }
+
+    let companyLogoPath = existingUser?.company_logo;
+    let verificationDocumentPath = existingUser?.verification_document;
+
+    try {
+      if (
+        validatedData.companyLogo instanceof File &&
+        validatedData.companyLogo.size > 0
+      ) {
+        companyLogoPath = await uploadManufacturerLogo(
+          validatedData.companyLogo,
+          userId,
+        );
+      }
+
+      if (
+        validatedData.verificationDocument instanceof File &&
+        validatedData.verificationDocument.size > 0
+      ) {
+        verificationDocumentPath = await uploadManufacturerVerificationDocument(
+          validatedData.verificationDocument,
+          userId,
+        );
+      }
+    } catch (uploadError) {
+      console.error("File upload failed:", uploadError);
+      return { success: false, message: "Failed to upload files." };
+    }
+
+    const { error: updateError } = await supabase
+      .from("manufacturer")
+      .update({
+        company_name: validatedData.companyName,
+        contact_person: validatedData.contactPerson,
+        gst_number: validatedData.gstNumber,
+        company_description: validatedData.description,
+        website: validatedData.website || null,
+        address: validatedData.address,
+        state: validatedData.state,
+        city: validatedData.city,
+        pincode: validatedData.pincode,
+        company_logo: companyLogoPath,
+        verification_document: verificationDocumentPath,
+        business_type: "manufacturer",
+        application_status: "PENDING",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Update failed:", updateError);
+      return { success: false, message: "Failed to update application." };
+    }
+
+    await supabase.from("manufacturer_application_history").insert({
+      manufacturer_id: userId,
+      status: "PENDING",
+      admin_id: null,
+      message: "Application resubmitted after rejection",
+    });
+
+    revalidatePath("/manufacturer/dashboard");
+
+    return {
+      success: true,
+      message: "Application updated and resubmitted successfully!",
+      data: { isOnboarded: true },
+    };
+  } catch (err: any) {
+    console.error("Unexpected error in updateManufacturerApplication:", err);
     return {
       success: false,
       message: "Something went wrong. Please try again.",

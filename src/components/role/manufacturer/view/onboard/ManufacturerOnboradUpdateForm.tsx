@@ -1,12 +1,11 @@
 "use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { onboardManufacturer } from "@/actions/manufacturer/onboard.action";
+import { updateManufacturerApplication } from "@/actions/manufacturer/onboard.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Combobox } from "@/components/ui/combobox";
@@ -26,9 +25,10 @@ import ValidationMessage from "@/components/widgets/ValidationMessage";
 import citiesData from "@/data/cities.json";
 import statesData from "@/data/states.json";
 import {
-  type OnboardingForm,
-  onboardingSchema,
+  type ResubmitOnboardingForm,
+  resubmitOnboardingSchema,
 } from "@/schema/manufacturer/onboard";
+import type { Manufacturer } from "@/types";
 
 const STEPS = [
   { id: 1, name: "Company Information" },
@@ -36,10 +36,10 @@ const STEPS = [
   { id: 3, name: "Documents" },
 ];
 
-const STEP_FIELDS: Record<number, (keyof OnboardingForm)[]> = {
+const STEP_FIELDS: Record<number, (keyof ResubmitOnboardingForm)[]> = {
   1: ["companyName", "contactPerson", "gstNumber", "description", "website"],
   2: ["address", "state", "city", "pincode"],
-  3: ["companyLogo", "verificationDocument"],
+  3: [], // No validation on Step 3 navigation
 };
 
 const totalSteps = 3;
@@ -47,10 +47,16 @@ const totalSteps = 3;
 interface Props {
   userId: string;
   open: boolean;
+  initialData: Manufacturer;
   onOpenChange?: (open: boolean) => void;
 }
 
-const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
+const ManufacturerOnboradUpdateForm = ({
+  userId,
+  open,
+  initialData,
+  onOpenChange,
+}: Props) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,19 +69,44 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
     watch,
     formState: { errors },
     reset,
-  } = useForm<OnboardingForm>({
+  } = useForm<ResubmitOnboardingForm>({
     mode: "onChange",
-    resolver: zodResolver(onboardingSchema),
+    resolver: zodResolver(resubmitOnboardingSchema),
     defaultValues: {
-      website: "",
-      state: "",
-      city: "",
+      companyName: initialData?.company_name || "",
+      contactPerson: initialData?.contact_person || "",
+      gstNumber: initialData?.gst_number || "",
+      description: initialData?.company_description || "",
+      website: initialData?.website || "",
+      address: initialData?.address || "",
+      state: initialData?.state || "",
+      city: initialData?.city || "",
+      pincode: initialData?.pincode || "",
+      companyLogo: initialData?.company_logo || "",
+      verificationDocument: initialData?.verification_document || "",
     },
   });
 
+  useEffect(() => {
+    if (open && initialData) {
+      reset({
+        companyName: initialData.company_name || "",
+        contactPerson: initialData.contact_person || "",
+        gstNumber: initialData.gst_number || "",
+        description: initialData.company_description || "",
+        website: initialData.website || "",
+        address: initialData.address || "",
+        state: initialData.state || "",
+        city: initialData.city || "",
+        pincode: initialData.pincode || "",
+        companyLogo: initialData?.company_logo || "",
+        verificationDocument: initialData?.verification_document || "",
+      });
+    }
+  }, [open, initialData, reset]);
+
   const selectedState = watch("state");
   const watchedCity = watch("city");
-
   const availableCities = useMemo(() => {
     if (!selectedState) return [];
     const stateId = statesData.find((s) => s.name === selectedState)?.id;
@@ -94,14 +125,19 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
   };
 
   const handleLogoChange = (file: any | null) => {
-    setValue("companyLogo", file?.file || "", { shouldDirty: true });
+    if (file) {
+      setValue("companyLogo", file.file, { shouldValidate: true });
+    }
   };
 
   const handleVerificationDocChange = (file: any | null) => {
-    setValue("verificationDocument", file?.file || "", { shouldDirty: true });
+    if (file) {
+      setValue("verificationDocument", file.file, { shouldValidate: true });
+    }
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
     const fields = STEP_FIELDS[currentStep];
     const isValid = await trigger(fields);
     if (isValid && currentStep < totalSteps) {
@@ -120,11 +156,11 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
     router.refresh();
   };
 
-  const onSubmit = async (data: OnboardingForm) => {
+  const onSubmit = async (data: ResubmitOnboardingForm) => {
+    if (currentStep !== totalSteps) return; // Only submit on final step
     try {
       setIsSubmitting(true);
-      const response = await onboardManufacturer({ userId, data });
-
+      const response = await updateManufacturerApplication({ userId, data });
       if (response.success) {
         toast.success(response.message || "Profile completed successfully!");
         handleSuccess();
@@ -145,11 +181,12 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
           <DialogTitle className="flex items-center justify-between">
             <span className="flex items-center gap-3 text-xl mx-auto">
               <Building2 className="h-7 w-7 text-primary" />
-              Complete Your Manufacturer Profile
+              Update & Resubmit Application
             </span>
           </DialogTitle>
-          <DialogDescription />
-
+          <DialogDescription className="mx-auto">
+            Please fix the issues mentioned in the admin feedback and resubmit.
+          </DialogDescription>
           {/* Step Indicator */}
           <div className="flex items-center justify-center mt-6">
             {STEPS.map((step, index) => (
@@ -178,17 +215,11 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                 </div>
                 {index < STEPS.length - 1 && (
                   <div className={`h-0.5 w-32 transition-colors mx-4`} />
-                  // <div
-                  //   className={`h-0.5 w-32 transition-colors mx-4 ${
-                  //     currentStep > step.id + 1 ? "bg-primary" : "bg-border"
-                  //   }`}
-                  // />
                 )}
               </Fragment>
             ))}
           </div>
         </DialogHeader>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           <Card className="border-0 shadow-none rounded-t-none p-0">
             <CardContent className="p-8 pt-6 space-y-8">
@@ -229,7 +260,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                       )}
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-0.5">
                       <div className="space-y-2">
@@ -259,7 +289,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                       )}
                     </div>
                   </div>
-
                   <div className="space-y-0.5">
                     <div className="space-y-2 w-full max-w-full">
                       <Label>
@@ -278,7 +307,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                   </div>
                 </div>
               )}
-
               {/* Step 2: Address */}
               {currentStep === 2 && (
                 <div className="space-y-8">
@@ -297,7 +325,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                       <ValidationMessage message={errors.address.message} />
                     )}
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-0.5">
                       <div className="space-y-2">
@@ -317,7 +344,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                         <ValidationMessage message={errors?.state?.message} />
                       )}
                     </div>
-
                     <div className="space-y-0.5">
                       <div className="space-y-2">
                         <Label>
@@ -336,7 +362,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                         <ValidationMessage message={errors.city.message} />
                       )}
                     </div>
-
                     <div className="space-y-0.5">
                       <div className="space-y-2">
                         <Label>
@@ -355,52 +380,48 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                   </div>
                 </div>
               )}
-
               {/* Step 3: Documents */}
               {currentStep === 3 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-0.5">
-                    <div className="space-y-4">
-                      <Label className="block text-center">
-                        Company Logo <RequiredIndicator />
-                      </Label>
-                      <div className="mx-auto w-fit">
-                        <FileUpload
-                          accept="image"
-                          variant="round"
-                          onFileChange={handleLogoChange}
-                          disabled={isSubmitting}
-                        />
-                      </div>
-                      <p className="text-xs text-center text-muted-foreground">
-                        PNG, JPG up to 2MB
-                      </p>
-                    </div>
-                    <div className="w-fit mx-auto">
-                      {errors.companyLogo?.message && (
-                        <ValidationMessage
-                          message={errors.companyLogo.message}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <div className="space-y-4">
-                      <Label>
-                        Verification Document <RequiredIndicator />
-                      </Label>
+                  {/* Company Logo */}
+                  <div className="space-y-4">
+                    <Label className="block text-center">
+                      Company Logo <RequiredIndicator />
+                    </Label>
+                    <div className="mx-auto w-fit">
                       <FileUpload
-                        accept="image-pdf"
-                        variant="rectangle"
-                        onFileChange={handleVerificationDocChange}
+                        accept="image"
+                        variant="round"
+                        onFileChange={handleLogoChange}
                         disabled={isSubmitting}
+                        defaultPreview={initialData?.company_logo || undefined}
                       />
-                      <p className="text-xs text-muted-foreground">
-                        GST certificate, Trade license, or Registration
-                        certificate (up to 2MB)
-                      </p>
                     </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      PNG, JPG up to 2MB · Upload new to replace
+                    </p>
+                    {errors.companyLogo?.message && (
+                      <ValidationMessage message={errors.companyLogo.message} />
+                    )}
+                  </div>
+                  {/* Verification Document */}
+                  <div className="space-y-4">
+                    <Label>
+                      Verification Document <RequiredIndicator />
+                    </Label>
+                    <FileUpload
+                      accept="image-pdf"
+                      variant="rectangle"
+                      onFileChange={handleVerificationDocChange}
+                      disabled={isSubmitting}
+                      defaultPreview={
+                        initialData?.verification_document || undefined
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      GST certificate, Trade license, or Registration
+                      certificate (up to 2MB)
+                    </p>
                     {errors.verificationDocument?.message && (
                       <ValidationMessage
                         message={errors.verificationDocument.message}
@@ -411,7 +432,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
               )}
             </CardContent>
           </Card>
-
           {/* Navigation */}
           <div className="flex justify-between items-center p-6 border-t bg-muted/30">
             <Button
@@ -422,7 +442,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
             >
               Previous
             </Button>
-
             {currentStep < totalSteps ? (
               <Button
                 type="button"
@@ -433,7 +452,7 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
               </Button>
             ) : (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Complete Profile"}
+                {isSubmitting ? "Submitting..." : "Resubmit Application"}
               </Button>
             )}
           </div>
@@ -442,5 +461,4 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
     </Dialog>
   );
 };
-
-export default ManufacturerOnboardForm;
+export default ManufacturerOnboradUpdateForm;

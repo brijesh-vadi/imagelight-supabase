@@ -111,7 +111,6 @@ import { FileText, Upload, X } from "lucide-react";
 import Image from "next/image";
 import type React from "react";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import type {
   FileUploadOptions,
   FileUploadState,
@@ -257,36 +256,40 @@ const FileUpload: React.FC<FileUploadProps> = ({
         >
           {/* preview */}
           {current?.preview || defaultPreview ? (
-            // Decide if PDF preview or image
-            (current?.file instanceof File &&
-              current.file.type === "application/pdf") ||
-            (typeof current?.file !== "object" &&
-              /\.(pdf)(\?.*)?$/i.test(String(current?.preview))) ? (
+            // If there's an uploaded file AND it's a PDF → show PDF preview
+            current &&
+            current.file instanceof File &&
+            current.file.type === "application/pdf" ? (
               <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
-                <FileText className="text-muted-foreground" />
-                <div className="text-xs">
-                  {current.file instanceof File
-                    ? current.file.name
-                    : (current.file as any).name}
+                <FileText className="size-12 text-muted-foreground" />
+                <div className="text-sm font-medium break-all">
+                  {current.file.name}
                 </div>
               </div>
-            ) : // Use <img> for object URLs to avoid next/image blob limitations — but Next Image is ok for remote URLs.
-            current?.preview ? (
+            ) : // If defaultPreview ends with .pdf → treat as PDF
+            defaultPreview && /\.(pdf)(\?.*)?$/i.test(defaultPreview) ? (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
+                <FileText className="size-12 text-muted-foreground" />
+                <div className="text-xs text-muted-foreground">
+                  {defaultPreview.split("/").pop()?.split("?")[0]}
+                </div>
+              </div>
+            ) : (
+              // Otherwise: show image (from uploaded preview or defaultPreview URL)
               <Image
-                src={current.preview}
+                src={current?.preview || defaultPreview || ""}
                 alt="preview"
                 fill
                 className="h-full w-full object-cover"
-                style={{ display: "block" }}
+                // unoptimized
               />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full">
-                <Upload className="size-6 text-muted-foreground" />
-              </div>
             )
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 px-4 text-center">
-              <Upload className="size-6 text-muted-foreground" />
+              <Upload className="size-8 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">
+                Click or drag to upload
+              </p>
             </div>
           )}
         </div>
