@@ -380,11 +380,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                         PNG, JPG up to 2MB
                       </p>
                     </div>
-                    <div className="w-fit mx-auto">
-                      <div className="w-fit mx-auto">
-                        {/* Validation message removed */}
-                      </div>
-                    </div>
                   </div>
 
                   <div className="space-y-0.5">

@@ -99,3 +99,23 @@ export interface Category {
   created_at: string;
   updated_at: string;
 }
+
+export interface Product {
+  id: string;
+  manufacturer_id: string;
+  name: string;
+  description: string;
+  primary_image: string;
+  images?: string;
+  sku: string;
+  stock: number;
+  min_order_quantity: number;
+  in_stock: boolean;
+  is_active: boolean;
+  dealer_price: number;
+  regular_price: number;
+  unit_id: string;
+  category_id: string;
+  created_at: string;
+  updated_at: string;
+}

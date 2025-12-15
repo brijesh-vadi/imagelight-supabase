@@ -1,110 +1,3 @@
-// "use client";
-
-// import { Upload, X } from "lucide-react";
-// import Image from "next/image";
-// import { Button } from "@/components/ui/button";
-// import { type FileWithPreview, useFileUpload } from "@/hooks/use-file-upload";
-// import { cn } from "@/lib/utils";
-
-// interface FileUploadProps {
-//   maxSize?: number;
-//   className?: string;
-//   onFileChange?: (file: FileWithPreview | null) => void;
-//   defaultAvatar?: string;
-//   accept: "image" | "pdf" | "image-pdf";
-//   variant: "round" | "sqaure" | "rectangle";
-// }
-
-// const FileUpload = ({
-//   maxSize = 2 * 1024 * 1024,
-//   className,
-//   onFileChange,
-//   defaultAvatar,
-// }: FileUploadProps) => {
-//   const [
-//     { files, isDragging },
-//     {
-//       removeFile,
-//       handleDragEnter,
-//       handleDragLeave,
-//       handleDragOver,
-//       handleDrop,
-//       openFileDialog,
-//       getInputProps,
-//     },
-//   ] = useFileUpload({
-//     maxFiles: 1,
-//     maxSize,
-//     accept: "image/*",
-//     multiple: false,
-//     onFilesChange: (files) => {
-//       onFileChange?.(files[0] || null);
-//     },
-//   });
-
-//   const currentFile = files[0];
-//   const previewUrl = currentFile?.preview || defaultAvatar;
-
-//   const handleRemove = () => {
-//     if (currentFile) {
-//       removeFile(currentFile.id);
-//     }
-//   };
-
-//   return (
-//     <div className={cn("flex gap-4", className)}>
-//       {/* Avatar Preview */}
-//       <div className="relative">
-//         <button
-//           type="button"
-//           className={cn(
-//             "group/avatar relative h-32 w-32 cursor-pointer overflow-hidden rounded-full border border-dashed transition-colors",
-//             isDragging
-//               ? "border-primary bg-primary/5"
-//               : "border-muted-foreground/25 hover:border-muted-foreground/20",
-//             previewUrl && "border-solid",
-//           )}
-//           onDragEnter={handleDragEnter}
-//           onDragLeave={handleDragLeave}
-//           onDragOver={handleDragOver}
-//           onDrop={handleDrop}
-//           onClick={openFileDialog}
-//         >
-//           <input {...getInputProps()} className="sr-only" />
-
-//           {previewUrl ? (
-//             <Image
-//               src={previewUrl}
-//               alt="Avatar"
-//               fill
-//               className="h-full w-full object-cover"
-//             />
-//           ) : (
-//             <div className="flex h-full w-full items-center justify-center">
-//               <Upload className="size-4 text-muted-foreground" />
-//             </div>
-//           )}
-//         </button>
-
-//         {/* Remove Button - only show when file is uploaded */}
-//         {currentFile && (
-//           <Button
-//             size="icon"
-//             variant="outline"
-//             onClick={handleRemove}
-//             className="size-4 absolute end-0 top-1 right-4 rounded-full"
-//             aria-label="Remove avatar"
-//           >
-//             <X className="size-3 text-destructive" />
-//           </Button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FileUpload;
-
 "use client";
 
 import { FileText, Upload, X } from "lucide-react";
@@ -127,9 +20,11 @@ interface FileUploadProps {
   onFileChange?: (file: FileWithPreview | null) => void;
   defaultPreview?: string;
   accept?: AcceptType;
+  value?: FileWithPreview | null;
   variant?: "round" | "square" | "rectangle";
   label?: React.ReactNode;
   disabled?: boolean;
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
@@ -141,6 +36,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
   variant = "round",
   label,
   disabled = false,
+  size = "md",
+  value,
 }) => {
   const acceptAttr =
     accept === "image"
@@ -149,12 +46,71 @@ const FileUpload: React.FC<FileUploadProps> = ({
         ? "application/pdf"
         : "image/*,application/pdf";
 
+  const initialFiles = value
+    ? [
+        {
+          id: value.id,
+          name: value.file.name,
+          size: value.file.size,
+          type: value.file.type,
+          url: value.preview || "",
+        },
+      ]
+    : [];
+
   const [state, actions] = useFileUpload({
+    initialFiles,
     maxFiles: 1,
     maxSize: maxSize ?? 2 * 1024 * 1024,
     accept: acceptAttr,
     multiple: false,
   } as FileUploadOptions);
+
+  const getSizeClass = () => {
+    if (variant === "round") {
+      switch (size) {
+        case "sm":
+          return "h-24 w-24";
+        case "md":
+          return "h-40 w-40";
+        case "lg":
+          return "h-56 w-56";
+        case "xl":
+          return "h-72 w-72";
+        default:
+          return "h-40 w-40";
+      }
+    } else if (variant === "square") {
+      switch (size) {
+        case "sm":
+          return "h-24 w-24";
+        case "md":
+          return "h-32 w-32";
+        case "lg":
+          return "h-48 w-48";
+        case "xl":
+          return "h-64 w-64";
+        default:
+          return "h-32 w-32";
+      }
+    } else {
+      // rectangle
+      switch (size) {
+        case "sm":
+          return "h-32 w-full";
+        case "md":
+          return "h-40 w-full";
+        case "lg":
+          return "h-56 w-full";
+        case "xl":
+          return "h-72 w-full";
+        default:
+          return "h-40 w-full";
+      }
+    }
+  };
+
+  const outerShapeClass = getSizeClass();
 
   const { files, isDragging } = state as FileUploadState;
   const {
@@ -168,7 +124,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
     clearErrors,
   } = actions;
 
-  // notify parent on change
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const file = files[0] ?? null;
@@ -176,14 +131,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
   }, [files]);
 
   const current = files[0] ?? null;
-
-  // Outer wrapper controls overall size and allows negative-positioned remove button to be visible.
-  const outerShapeClass =
-    variant === "round"
-      ? "h-40 w-40"
-      : variant === "square"
-        ? "h-32 w-32"
-        : "h-40 w-full";
 
   // Inner preview area is clipped (overflow-hidden) and rounded as needed.
   const innerShapeClass =
@@ -286,10 +233,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             )
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 px-4 text-center">
-              <Upload className="size-8 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">
-                Click or drag to upload
-              </p>
+              <Upload className="size-4 text-muted-foreground" />
             </div>
           )}
         </div>
