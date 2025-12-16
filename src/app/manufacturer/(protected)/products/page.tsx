@@ -1,12 +1,28 @@
 import Link from "next/link";
 import { getManufacturerProducts } from "@/actions/manufacturer/product.action";
-import ManufacturerProductCard from "@/components/role/manufacturer/view/products/ManufacturerProductCard";
+import ManufacturerProductsView from "@/components/role/manufacturer/view/products/ManufacturerProductsView";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
-const ManufacturerProductsPage = async () => {
-  const { data: products } = await getManufacturerProducts();
+interface Props {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}
+
+const LIMIT = 9;
+
+const ManufacturerProductsPage = async ({ searchParams }: Props) => {
+  const params = await searchParams;
+
+  const page = Number(params.page ?? 1);
+
+  const { data } = await getManufacturerProducts({
+    page,
+    limit: 9,
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -23,12 +39,12 @@ const ManufacturerProductsPage = async () => {
         </Button>
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products?.map((product) => (
-          <ManufacturerProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      <ManufacturerProductsView
+        products={data?.products ?? []}
+        total={data?.total ?? 0}
+        page={page}
+        limit={LIMIT}
+      />
     </div>
   );
 };

@@ -9,7 +9,7 @@ import {
   type AddProductForm,
   addProductSchema,
 } from "@/schema/manufacturer/product";
-import { type ApiResponse, type Product, Role } from "@/types";
+import { type ApiResponse, type Pagination, type Product, Role } from "@/types";
 
 type UploadResult = {
   type: "primary" | "secondary";
@@ -172,29 +172,37 @@ export async function addProduct(
   }
 }
 
-export async function getManufacturerProducts(): Promise<
-  ApiResponse<Product[]>
-> {
+export async function getManufacturerProducts(
+  pagination: Pagination,
+): Promise<ApiResponse<{ products: Product[]; total: number }>> {
   const session = await getSession(Role.MANUFACTURER);
 
   const supabase = await createClient();
 
+  const { page, limit } = pagination;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
   try {
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from("products")
-      .select(`
-          *,
-          unit (
-            id,
-            name
-          ),
-          category:categories (
-            id,
-            name
-          )
-        `)
+      .select(
+        `
+            *,
+            unit (
+              id,
+              name
+            ),
+            category:categories (
+              id,
+              name
+            )
+          `,
+        { count: "exact" },
+      )
       .eq("manufacturer_id", session?.userId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
     if (error) {
       return {
@@ -205,7 +213,10 @@ export async function getManufacturerProducts(): Promise<
 
     return {
       success: true,
-      data: data ?? [],
+      data: {
+        products: data ?? [],
+        total: count ?? 0,
+      },
     };
   } catch (err) {
     console.error("getManufacturerProducts unexpected error:", err);

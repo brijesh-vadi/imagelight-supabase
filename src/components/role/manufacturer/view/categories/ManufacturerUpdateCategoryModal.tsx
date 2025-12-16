@@ -46,7 +46,6 @@ const ManufacturerUpdateCategoryModal = ({
     resolver: zodResolver(categorySchema),
   });
 
-  // Set form values when unit changes
   useEffect(() => {
     if (category) {
       setValue("name", category.name);
@@ -76,7 +75,7 @@ const ManufacturerUpdateCategoryModal = ({
       <DialogContent className="flex flex-col gap-6">
         <DialogHeader>
           <DialogTitle className="text-primary text-xl">
-            Update Unit
+            Update Category
           </DialogTitle>
           <DialogDescription />
         </DialogHeader>
@@ -87,7 +86,7 @@ const ManufacturerUpdateCategoryModal = ({
           <div className="flex items-center gap-3">
             <div className="flex w-full flex-col gap-2">
               <Label className="text-muted-foreground">
-                Unit Name <RequiredIndicator />
+                Category Name <RequiredIndicator />
               </Label>
               <Input {...register("name")} placeholder="Kilogram" />
               {errors.name?.message && (
