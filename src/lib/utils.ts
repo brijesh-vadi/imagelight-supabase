@@ -17,3 +17,17 @@ export const formatDate = (date: string | Date) => {
     })
     .replace(/\s?(am|pm)/i, (m) => m.toUpperCase());
 };
+
+export const shortenText = (text: string, length: number) => {
+  if (text.length > length) {
+    return `${text.slice(0, length)} ...`;
+  }
+  return text.slice(0, length);
+};
+
+export const formatPrice = (price: number) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+  }).format(price);
+};

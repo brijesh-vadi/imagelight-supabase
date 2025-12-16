@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { v4 as uuid } from "uuid";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/supabase/session";
 import {
   type AddProductForm,
@@ -164,6 +165,50 @@ export async function addProduct(
     };
   } catch (err) {
     console.error("addProduct error:", err);
+    return {
+      success: false,
+      message: "Unexpected server error",
+    };
+  }
+}
+
+export async function getManufacturerProducts(): Promise<
+  ApiResponse<Product[]>
+> {
+  const session = await getSession(Role.MANUFACTURER);
+
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+          *,
+          unit (
+            id,
+            name
+          ),
+          category:categories (
+            id,
+            name
+          )
+        `)
+      .eq("manufacturer_id", session?.userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return {
+        success: false,
+        message: "Failed to fetch products",
+      };
+    }
+
+    return {
+      success: true,
+      data: data ?? [],
+    };
+  } catch (err) {
+    console.error("getManufacturerProducts unexpected error:", err);
     return {
       success: false,
       message: "Unexpected server error",

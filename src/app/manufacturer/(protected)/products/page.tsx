@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { getManufacturerProducts } from "@/actions/manufacturer/product.action";
+import ManufacturerProductCard from "@/components/role/manufacturer/view/products/ManufacturerProductCard";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
 const ManufacturerProductsPage = async () => {
+  const { data: products } = await getManufacturerProducts();
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -21,16 +24,11 @@ const ManufacturerProductsPage = async () => {
       </div>
 
       {/* Products Grid */}
-      {/*<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.data?.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            categories={categories.data || []}
-            units={units.data || []}
-          />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {products?.map((product) => (
+          <ManufacturerProductCard key={product.id} product={product} />
         ))}
-      </div>*/}
+      </div>
     </div>
   );
 };

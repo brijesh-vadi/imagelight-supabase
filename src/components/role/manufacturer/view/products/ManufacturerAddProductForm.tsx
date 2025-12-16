@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ interface Props {
 const MAX_SECONDARY_IMAGES = 4;
 
 const ManufacturerAddProductForm = ({ categories, units }: Props) => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [secondaryImages, setSecondaryImages] = useState<
     (FileWithPreview | null)[]
@@ -51,7 +53,7 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
     watch,
   } = useForm<AddProductForm>({
     resolver: zodResolver(addProductSchema),
@@ -299,7 +301,7 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
           <div className="flex items-center gap-4">
             <div className="flex w-1/2 flex-col gap-2">
               <Label>
-                Min Order Quantity <RequiredIndicator />
+                Min. Order Quantity <RequiredIndicator />
               </Label>
               <NumericField
                 {...register("minOrderQuantity", {
@@ -422,23 +424,26 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                You have unsaved changes. If you cancel now, all entered product
-                details will be lost.
+                Any unsaved product details will be lost if you cancel now.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction>Continue</AlertDialogAction>
+              <AlertDialogAction
+                onClick={() => router.push("/manufacturer/products")}
+              >
+                Continue
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
         <Button
           className="flex items-center gap-2"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isLoading || !isValid}
         >
           <span>Save</span>
-          {isSubmitting && <Spinner />}
+          {isLoading && <Spinner />}
         </Button>
       </div>
     </form>

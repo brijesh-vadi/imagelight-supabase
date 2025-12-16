@@ -189,3 +189,51 @@ export async function updateUnit(
     };
   }
 }
+
+export async function getUnitById(
+  unitId: string,
+): Promise<ApiResponse<Unit | null>> {
+  try {
+    const session = await getSession(Role.MANUFACTURER);
+    const supabase = await createClient();
+
+    if (!unitId) {
+      return {
+        success: false,
+        message: "Unit ID is required",
+      };
+    }
+
+    const { data, error } = await supabase
+      .from("unit")
+      .select("id, name, created_at, updated_at, manufacturer_id")
+      .eq("id", unitId)
+      .eq("manufacturer_id", session?.userId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return {
+          success: true,
+          data: null,
+        };
+      }
+
+      return {
+        success: false,
+        message: "Failed to fetch unit",
+      };
+    }
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (err) {
+    console.error("getUnitById unexpected error:", err);
+    return {
+      success: false,
+      message: "Something went wrong on our side",
+    };
+  }
+}

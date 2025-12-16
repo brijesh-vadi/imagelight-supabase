@@ -115,6 +115,8 @@ export interface Product {
   dealer_price: number;
   regular_price: number;
   unit_id: string;
+  unit?: Pick<Unit, "id" | "name">;
+  category?: Pick<Category, "id" | "name">;
   category_id: string;
   created_at: string;
   updated_at: string;
