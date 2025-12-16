@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
+import { deleteProduct } from "@/actions/manufacturer/product.action";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,10 +26,24 @@ interface ProductCardProps {
 
 const ManufacturerProductCard = ({ product }: ProductCardProps) => {
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const allImages = [product.primary_image, ...(product.images ?? [])];
 
-  const handleDeleteProduct = async () => {};
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+
+    setIsDeleting(true);
+    const response = await deleteProduct(productToDelete.id);
+    setIsDeleting(false);
+
+    if (response.success) {
+      toast.success(response.message);
+      setProductToDelete(null);
+    } else {
+      toast.error(response.message);
+    }
+  };
 
   return (
     <>
@@ -136,7 +152,7 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
         open={!!productToDelete}
         title={productToDelete?.name ?? ""}
         description="This action cannot be undone. This will permanently delete the product from the system."
-        isDeleting={false}
+        isDeleting={isDeleting}
         onConfirmAction={handleDeleteProduct}
         onCancelAction={() => setProductToDelete(null)}
       />

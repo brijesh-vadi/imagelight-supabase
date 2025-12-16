@@ -215,3 +215,87 @@ export async function getManufacturerProducts(): Promise<
     };
   }
 }
+
+export async function deleteProduct(
+  productId: string,
+): Promise<ApiResponse<null>> {
+  const session = await getSession(Role.MANUFACTURER);
+
+  if (!session?.userId) {
+    return {
+      success: false,
+      message: "Unauthorized",
+    };
+  }
+
+  if (!productId) {
+    return {
+      success: false,
+      message: "Product ID is required",
+    };
+  }
+
+  const supabase = createAdminClient();
+
+  try {
+    const { data: product, error: fetchError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("id", productId)
+      .eq("manufacturer_id", session.userId)
+      .single();
+
+    if (fetchError || !product) {
+      return {
+        success: false,
+        message: "Product not found or access denied",
+      };
+    }
+
+    const { error: deleteError } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId)
+      .eq("manufacturer_id", session.userId);
+
+    if (deleteError) {
+      console.error("deleteProduct DB error:", deleteError);
+      return {
+        success: false,
+        message: "Failed to delete product",
+      };
+    }
+
+    const folderPath = `${session.userId}/products/${productId}`;
+
+    const { data: files, error: listError } = await supabase.storage
+      .from("manufacturer-assets")
+      .list(folderPath, { limit: 100 });
+
+    if (!listError && files?.length) {
+      const paths = files.map((file) => `${folderPath}/${file.name}`);
+
+      const { error: removeError } = await supabase.storage
+        .from("manufacturer-assets")
+        .remove(paths);
+
+      if (removeError) {
+        console.warn("Image cleanup failed:", removeError);
+      }
+    }
+
+    revalidatePath("/manufacturer/products");
+
+    return {
+      success: true,
+      message: "Product deleted successfully",
+      data: null,
+    };
+  } catch (err) {
+    console.error("deleteProduct unexpected error:", err);
+    return {
+      success: false,
+      message: "Unexpected server error",
+    };
+  }
+}
