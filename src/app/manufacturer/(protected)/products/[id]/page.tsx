@@ -32,7 +32,7 @@ const ManufacturerProductDetailsPage = async ({ params }: Props) => {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/manufacturer/products/update?id=${product.id}`}>
+          <Link href={`/manufacturer/products?update-id=${product.id}`}>
             Update Product
           </Link>
         </Button>

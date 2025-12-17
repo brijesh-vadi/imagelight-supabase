@@ -66,7 +66,17 @@ export async function getCategories(): Promise<ApiResponse<Category[]>> {
 
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, is_active, created_at, updated_at, manufacturer_id")
+      .select(
+        `
+        id,
+        name,
+        is_active,
+        created_at,
+        updated_at,
+        manufacturer_id,
+        products:products(count)
+      `,
+      )
       .eq("manufacturer_id", session.userId)
       .order("name", { ascending: true });
 
@@ -74,7 +84,13 @@ export async function getCategories(): Promise<ApiResponse<Category[]>> {
       return { success: false, message: "Failed to fetch categories" };
     }
 
-    return { success: true, data: data || [] };
+    const categoriesWithCount = data?.map((category) => ({
+      ...category,
+      product_count: category.products?.[0]?.count || 0,
+      products: undefined,
+    }));
+
+    return { success: true, data: categoriesWithCount || [] };
   } catch (err) {
     console.error("getCategories unexpected error:", err);
     return { success: false, message: "Something went wrong on our side" };

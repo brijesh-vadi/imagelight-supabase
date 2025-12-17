@@ -61,7 +61,9 @@ const ManufacturerCategoriesTable = ({
           {categories.map((category) => (
             <TableRow key={category.id} className="h-14">
               <TableCell className="pl-5 text-left">{category.name}</TableCell>
-              <TableCell className=" text-center">0</TableCell>
+              <TableCell className=" text-center">
+                {category.product_count ?? 0}
+              </TableCell>
               <TableCell className="text-center">
                 {formatDate(category.created_at)}
               </TableCell>

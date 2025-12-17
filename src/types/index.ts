@@ -71,6 +71,7 @@ export interface Unit {
   manufacturer_id: string;
   created_at: Date;
   updated_at: Date;
+  product_count?: number;
 }
 
 export interface ApplicationHistoryEntry {
@@ -98,6 +99,7 @@ export interface Category {
   manufacturer_id: string;
   created_at: string;
   updated_at: string;
+  product_count?: number;
 }
 
 export interface Product {

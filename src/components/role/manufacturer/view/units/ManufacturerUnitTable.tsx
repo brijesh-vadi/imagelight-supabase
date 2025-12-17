@@ -56,7 +56,7 @@ const ManufacturerUnitTable = ({ units }: { units: Unit[] }) => {
                 {unit.name}
               </TableCell>
               <TableCell className=" text-center text-sm">
-                {/*{unit.products?.length ?? 0}*/}
+                {unit.product_count ?? 0}
               </TableCell>
               <TableCell className="text-center text-sm">
                 {formatDate(unit.created_at)}

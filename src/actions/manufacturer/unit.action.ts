@@ -60,7 +60,16 @@ export async function getUnits(): Promise<ApiResponse<Unit[]>> {
 
     const { data, error } = await supabase
       .from("unit")
-      .select("id, name, created_at, updated_at, manufacturer_id")
+      .select(
+        `
+        id,
+        name,
+        created_at,
+        updated_at,
+        manufacturer_id,
+        products:products(count)
+      `,
+      )
       .eq("manufacturer_id", session?.userId)
       .order("created_at", { ascending: false });
 
@@ -72,9 +81,15 @@ export async function getUnits(): Promise<ApiResponse<Unit[]>> {
       };
     }
 
+    const unitsWithCount = data?.map((unit) => ({
+      ...unit,
+      product_count: unit.products?.[0]?.count || 0,
+      products: undefined,
+    }));
+
     return {
       success: true,
-      data: data || [],
+      data: unitsWithCount || [],
     };
   } catch (err) {
     console.error("getUnits unexpected error:", err);
