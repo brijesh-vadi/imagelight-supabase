@@ -17,6 +17,12 @@ export interface ManufacturerUser {
   mobile: string;
 }
 
+export interface DealerUser {
+  id: string;
+  email: string;
+  mobile: string;
+}
+
 export interface SessionData {
   userId: string;
   role: string;
@@ -121,6 +127,26 @@ export interface Product {
   unit?: Pick<Unit, "id" | "name">;
   category?: Pick<Category, "id" | "name">;
   category_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Dealer {
+  id: string;
+  email: string;
+  mobile: string;
+  is_email_verified: boolean;
+  is_mobile_verified: boolean;
+  is_onboarded: boolean;
+  is_active: boolean;
+  business_name: string | null;
+  contact_person: string | null;
+  gst_number: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  verification_document: string | null;
   created_at: string;
   updated_at: string;
 }

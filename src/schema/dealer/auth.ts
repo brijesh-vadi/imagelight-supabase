@@ -8,29 +8,25 @@ export const signupSchema = z
       .string()
       .min(1, "Mobile number is required")
       .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
-
     password: z
       .string()
       .min(1, "Password is required")
       .min(8, "Password must be at least 8 characters"),
-
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
-export type SignUpForm = z.infer<typeof signupSchema>;
+export type SignupForm = z.infer<typeof signupSchema>;
 
-// sign in schema
-export const signInSchema = z.object({
+export const signinSchema = z.object({
   mobile: z
     .string()
-    .min(10, "Mobile number must be at least 10 digits")
-    .max(10, "Mobile number must be at least 10 digits")
-    .regex(/^[0-9]+$/, "Mobile number must contain only digits"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+    .min(1, "Mobile number is required")
+    .regex(/^\d{10}$/, "Mobile number must be exactly 10 digits"),
+  password: z.string().min(1, "Password is required"),
 });
 
-export type SignInForm = z.infer<typeof signInSchema>;
+export type SigninForm = z.infer<typeof signinSchema>;
