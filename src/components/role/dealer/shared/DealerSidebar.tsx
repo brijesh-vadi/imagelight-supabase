@@ -1,72 +1,61 @@
 "use client";
 
 import {
-  Box,
-  Layers,
+  Building2,
+  ClipboardList,
   LayoutDashboard,
   LogOut,
   Package,
   Settings,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { destroySession } from "@/lib/supabase/session";
-import { type Manufacturer, Role } from "@/types";
+import { type Dealer, Role } from "@/types";
 
 const navItems = [
   {
     label: "Dashboard",
-    href: "/manufacturer/dashboard",
+    href: "/dealer/dashboard",
     icon: LayoutDashboard,
   },
   {
-    label: "Dealer Applications",
-    href: "/manufacturer/dealer-applications",
-    icon: Users,
-  },
-  {
-    label: "Units",
-    href: "/manufacturer/units",
-    icon: Box,
-  },
-  {
-    label: "Categories",
-    href: "/manufacturer/categories",
-    icon: Layers,
-  },
-  {
-    label: "Products",
-    href: "/manufacturer/products",
-    icon: Package,
+    label: "Manufacturers",
+    href: "/dealer/manufacturers",
+    icon: Building2,
   },
   {
     label: "Orders",
-    href: "/manufacturer/orders",
+    href: "/dealer/orders",
+    icon: ClipboardList,
+  },
+  {
+    label: "Products",
+    href: "/dealer/products",
+    icon: Package,
+  },
+  {
+    label: "Cart",
+    href: "/dealer/cart",
     icon: Package,
   },
 ];
 
-const ManufacturerSidebar = ({
-  manufacturer,
-}: {
-  manufacturer: Manufacturer | undefined;
-}) => {
+const DealerSidebar = ({ dealer }: { dealer: Dealer }) => {
   const pathname = usePathname();
   const router = useRouter();
-
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-    destroySession(Role.MANUFACTURER);
+    destroySession(Role.DEALER);
     router.refresh();
     setIsSigningOut(false);
   };
+
   return (
     <aside className="flex h-screen w-64 flex-col bg-primary">
       {/* Navigation */}
@@ -103,9 +92,9 @@ const ManufacturerSidebar = ({
       </div>
       <div className="border-t border-primary-foreground/10 p-4 flex items-center gap-3">
         <div className="flex items-center gap-4 w-full">
-          <Avatar>
+          {/*<Avatar>
             <AvatarImage
-              src={manufacturer?.company_logo}
+              src={dealer?.}
               alt={manufacturer?.company_name}
               className="object-cover"
             />
@@ -113,12 +102,12 @@ const ManufacturerSidebar = ({
               {manufacturer?.company_name[0]}
               {manufacturer?.company_name[1]}
             </AvatarFallback>
-          </Avatar>
+          </Avatar>*/}
           <span className="font-bold text-base text-primary-foreground tracking-tight">
-            {manufacturer?.company_name}
+            {dealer?.business_name}
           </span>
         </div>
-        <Link href="/manufacturer/profile">
+        <Link href="/dealer/profile">
           <Settings className="text-muted" size={18} />
         </Link>
       </div>
@@ -126,4 +115,4 @@ const ManufacturerSidebar = ({
   );
 };
 
-export default ManufacturerSidebar;
+export default DealerSidebar;

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
 import {
-  type SigninForm,
+  type SignInForm,
   type SignupForm,
   signinSchema,
   signupSchema,
@@ -73,7 +73,7 @@ export async function signupDealer(
 }
 
 export async function signInDealer(
-  data: SigninForm,
+  data: SignInForm,
 ): Promise<ApiResponse<DealerUser>> {
   const supabase = await createClient();
   try {
