@@ -1,5 +1,6 @@
 "use client";
 
+import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ const ApplicationsTable = ({ manufacturers }: Props) => {
             <TableHead className="text-center">City</TableHead>
             <TableHead className="text-center">State</TableHead>
             <TableHead className="text-center">Application Status</TableHead>
+            <TableHead className="text-center">Is Active?</TableHead>
             <TableHead className="text-center">Verified</TableHead>
             <TableHead className="text-right">Created At</TableHead>
           </TableRow>
@@ -69,11 +71,6 @@ const ApplicationsTable = ({ manufacturers }: Props) => {
               <TableCell className="text-center">
                 {manufacturer.company_name || "—"}
               </TableCell>
-              {/*<TableCell className="text-center">
-                <ApplicationStatusHistory
-                  status={manufacturer.application?.status!}
-                />
-              </TableCell>*/}
               <TableCell className="text-center">{manufacturer.city}</TableCell>
               <TableCell className="text-center">
                 {manufacturer.state}
@@ -84,12 +81,30 @@ const ApplicationsTable = ({ manufacturers }: Props) => {
                 />
               </TableCell>
               <TableCell className="text-center">
-                {manufacturer.is_verified ? (
-                  <Badge variant="default" className="bg-green-600">
-                    Verified
+                {manufacturer.is_active ? (
+                  <Badge
+                    variant="default"
+                    className="bg-green-100 text-green-800"
+                  >
+                    Active
                   </Badge>
                 ) : (
-                  <Badge variant="secondary">Not Verified</Badge>
+                  <Badge variant="destructive">Not Active</Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-center">
+                {manufacturer.is_verified ? (
+                  <BadgeCheck
+                    size={22}
+                    className="text-white mx-auto text-blue"
+                    fill="#2b7fff"
+                  />
+                ) : (
+                  <BadgeCheck
+                    size={22}
+                    className="text-white mx-auto text-blue bg-gr"
+                    fill="#6a7282"
+                  />
                 )}
               </TableCell>
               <TableCell className="text-right">
