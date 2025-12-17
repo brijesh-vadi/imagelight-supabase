@@ -50,9 +50,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
     ? [
         {
           id: value.id,
-          name: value.file.name,
-          size: value.file.size,
-          type: value.file.type,
+          name: value?.file?.name,
+          size: value?.file?.size,
+          type: value?.file?.type,
           url: value.preview || "",
         },
       ]
@@ -228,6 +228,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 alt="preview"
                 fill
                 className="h-full w-full object-cover"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                 // unoptimized
               />
             )

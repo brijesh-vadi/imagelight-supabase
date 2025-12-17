@@ -106,7 +106,7 @@ export interface Product {
   name: string;
   description: string;
   primary_image: string;
-  images?: string;
+  images?: string[];
   sku: string;
   stock: number;
   min_order_quantity: number;

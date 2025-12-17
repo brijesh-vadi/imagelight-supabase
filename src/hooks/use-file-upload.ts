@@ -22,6 +22,7 @@ export type FileWithPreview = {
   file: File | FileMetadata;
   id: string;
   preview?: string;
+  isExisting?: boolean;
 };
 
 export type FileUploadOptions = {

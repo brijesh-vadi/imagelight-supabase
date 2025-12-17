@@ -91,7 +91,9 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
               onDetail={() =>
                 router.push(`/manufacturer/products/${product?.id}`)
               }
-              onUpdate={() => {}}
+              onUpdate={() =>
+                router.push(`/manufacturer/products?update-id=${product?.id}`)
+              }
               onDelete={() => setProductToDelete(product)}
             />
           </div>
