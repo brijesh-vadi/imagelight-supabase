@@ -4,6 +4,7 @@ import ApplicationActions from "@/components/role/admin/view/applications/Applic
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ApplicationTimeline from "@/components/widgets/ApplicationTimeline";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -80,13 +81,12 @@ const ApplicationDetailsPage = async ({ params }: Props) => {
           </div>
         )}
 
-        <div className={isPending ? "blur-sm" : ""}>
+        <div className={`flex gap-6 ${isPending ? "blur-sm" : ""}`}>
           <div className="flex flex-col w-1/2 gap-6">
             {/* Contact Information */}
             <Card className="p-0 gap-0 overflow-hidden">
               <CardHeader className="px-4 py-2 bg-primary/10 text-center gap-0">
                 <CardTitle className="flex items-center gap-2 text-md mx-auto">
-                  <CircleUserRound className="h-5 w-5" />
                   Contact Info
                 </CardTitle>
               </CardHeader>
@@ -173,11 +173,20 @@ const ApplicationDetailsPage = async ({ params }: Props) => {
                 <CardTitle className="text-base">About</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm p-4">
-                <div className="font-medium text-muted-foreground">
+                <div className="font-medium text-muted-foreground wrap-break-word">
                   {manufacturer?.company_description}
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Right Side: Timeline */}
+          <div className="w-1/2">
+            <ApplicationTimeline
+              currentStatus={manufacturer?.application_status || "PENDING"}
+              history={manufacturer?.application_history || []}
+              className="h-[calc(100vh-200px)]"
+            />
           </div>
         </div>
       </div>

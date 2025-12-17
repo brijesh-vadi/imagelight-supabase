@@ -14,15 +14,7 @@ export default async function ManufacturerLayout({
   );
 
   return (
-    // <div>
-    //   {manufacturer?.is_onboarded && manufacturer?.is_verified && (
-    //     <div className="flex h-screen overflow-hidden bg-background text-foreground">
-    //       <ManufacturerSidebar manufacturer={manufacturer} />
-    //     </div>
-    //   )}
-    //   <main className="flex-1 p-4">{children}</main>
-    // </div>
-    <div className="h-screen overflow-hidden ">
+    <div className="h-screen overflow-hidden">
       {manufacturer?.is_onboarded && manufacturer?.is_verified ? (
         <div className="flex h-full overflow-hidden bg-background text-foreground">
           <ManufacturerSidebar manufacturer={manufacturer} />

@@ -53,6 +53,7 @@ export interface Manufacturer {
   is_onboarded: boolean;
   is_email_verified: boolean;
   is_mobile_verified: boolean;
+  application_history?: ApplicationHistoryEntry[];
 }
 
 export interface Admin {

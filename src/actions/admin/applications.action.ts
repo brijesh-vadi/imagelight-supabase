@@ -124,9 +124,32 @@ export async function getManufacturerById(
       };
     }
 
+    const { data: history } = await supabase
+      .from("manufacturer_application_history")
+      .select(`
+        id,
+        status,
+        message,
+        created_at,
+        admin:admin_id (
+          id,
+          username,
+          email,
+          mobile,
+          profile_image,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq("manufacturer_id", manufacturerId)
+      .order("created_at", { ascending: true });
+
     return {
       success: true,
-      data: data,
+      data: {
+        ...data,
+        application_history: history || [],
+      },
     };
   } catch (err) {
     console.error("Unexpected error in getManufacturerById:", err);
