@@ -168,12 +168,34 @@ export async function deleteCategory(
   categoryId: string,
 ): Promise<ApiResponse<null>> {
   try {
+    const session = await getSession(Role.MANUFACTURER);
     const supabase = await createClient();
+
+    // Check if category is being used by any products
+    const { data: products, error: checkError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("category_id", categoryId)
+      .eq("manufacturer_id", session?.userId)
+      .limit(1);
+
+    if (checkError) {
+      return { success: false, message: "Failed to verify category usage" };
+    }
+
+    if (products && products.length > 0) {
+      return {
+        success: false,
+        message:
+          "Cannot delete category. It is currently being used by one or more products.",
+      };
+    }
 
     const { error } = await supabase
       .from("categories")
       .delete()
-      .eq("id", categoryId);
+      .eq("id", categoryId)
+      .eq("manufacturer_id", session?.userId);
 
     if (error) {
       return { success: false, message: "Failed to delete category" };

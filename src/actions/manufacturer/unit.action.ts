@@ -118,6 +118,27 @@ export async function deleteUnit(unitId: string): Promise<ApiResponse<null>> {
         message: "Unit not found or you don't have permission to delete it",
       };
     }
+
+    // Check if unit is being used by any products
+    const { data: products, error: checkError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("unit_id", unitId)
+      .eq("manufacturer_id", session?.userId)
+      .limit(1);
+
+    if (checkError) {
+      return { success: false, message: "Failed to verify unit usage" };
+    }
+
+    if (products && products.length > 0) {
+      return {
+        success: false,
+        message:
+          "Cannot delete unit. It is currently being used by one or more products.",
+      };
+    }
+
     const { error } = await supabase.from("unit").delete().eq("id", unitId);
 
     if (error) {
