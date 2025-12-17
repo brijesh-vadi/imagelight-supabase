@@ -18,7 +18,12 @@ interface Props {
   limit: number;
 }
 
-const ManufacturerProductsView = ({ products, limit, page, total }: Props) => {
+const ManufacturerProductsListView = ({
+  products,
+  limit,
+  page,
+  total,
+}: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -78,6 +83,11 @@ const ManufacturerProductsView = ({ products, limit, page, total }: Props) => {
             <PaginationItem>
               <PaginationNext
                 onClick={() => page < totalPages && goToPage(page + 1)}
+                className={
+                  page >= totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>
@@ -87,4 +97,4 @@ const ManufacturerProductsView = ({ products, limit, page, total }: Props) => {
   );
 };
 
-export default ManufacturerProductsView;
+export default ManufacturerProductsListView;

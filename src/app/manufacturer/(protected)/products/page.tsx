@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getManufacturerProducts } from "@/actions/manufacturer/product.action";
-import ManufacturerProductsView from "@/components/role/manufacturer/view/products/ManufacturerProductsView";
+import ManufacturerProductsListView from "@/components/role/manufacturer/view/products/ManufacturerProductsListView";
 import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,7 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
         </Button>
       </div>
 
-      <ManufacturerProductsView
+      <ManufacturerProductsListView
         products={data?.products ?? []}
         total={data?.total ?? 0}
         page={page}

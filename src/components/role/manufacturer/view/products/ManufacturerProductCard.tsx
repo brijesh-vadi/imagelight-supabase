@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { deleteProduct } from "@/actions/manufacturer/product.action";
@@ -25,6 +26,7 @@ interface ProductCardProps {
 }
 
 const ManufacturerProductCard = ({ product }: ProductCardProps) => {
+  const router = useRouter();
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -86,7 +88,9 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
               {shortenText(product.name, 30)}
             </h3>
             <ProductActionDropdown
-              onDetail={() => {}}
+              onDetail={() =>
+                router.push(`/manufacturer/products/${product?.id}`)
+              }
               onUpdate={() => {}}
               onDelete={() => setProductToDelete(product)}
             />

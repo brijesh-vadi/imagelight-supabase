@@ -310,3 +310,43 @@ export async function deleteProduct(
     };
   }
 }
+
+export async function getManufacturerProductById(
+  productId: string,
+): Promise<ApiResponse<Product>> {
+  const session = await getSession(Role.MANUFACTURER);
+
+  const supabase = await createClient();
+
+  try {
+    const { data: product } = await supabase
+      .from("products")
+      .select(
+        `
+          *,
+          unit (
+            id,
+            name
+          ),
+          category:categories (
+            id,
+            name
+          )
+        `,
+      )
+      .eq("id", productId)
+      .eq("manufacturer_id", session?.userId)
+      .single();
+
+    return {
+      success: true,
+      data: product,
+    };
+  } catch (err) {
+    console.error("getManufacturerProductById unexpected error:", err);
+    return {
+      success: false,
+      message: "Unexpected server error",
+    };
+  }
+}

@@ -31,3 +31,8 @@ export const formatPrice = (price: number) => {
     currency: "INR",
   }).format(price);
 };
+
+export const calculateSavingsPercentage = (regular: number, dealer: number) => {
+  if (regular <= dealer) return 0;
+  return Math.round(((regular - dealer) / regular) * 100);
+};
