@@ -104,7 +104,7 @@ const DealerSidebar = ({ dealer }: { dealer: Dealer }) => {
             </AvatarFallback>
           </Avatar>*/}
           <span className="font-bold text-base text-primary-foreground tracking-tight">
-            {dealer?.business_name}
+            {dealer?.company_name}
           </span>
         </div>
         <Link href="/dealer/profile">

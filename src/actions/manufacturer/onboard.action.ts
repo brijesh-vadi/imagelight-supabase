@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { PUBLIC_BUCKET } from "@/lib/constants";
+import { MANUFACTURER_PUBLIC_BUCKET } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
 import {
@@ -208,7 +208,7 @@ export async function updateManufacturerApplication({
         const parsed = new URL(url);
         return decodeURIComponent(
           parsed.pathname.replace(
-            `/storage/v1/object/public/${PUBLIC_BUCKET}/`,
+            `/storage/v1/object/public/${MANUFACTURER_PUBLIC_BUCKET}/`,
             "",
           ),
         );

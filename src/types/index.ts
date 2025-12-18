@@ -139,7 +139,8 @@ export interface Dealer {
   is_mobile_verified: boolean;
   is_onboarded: boolean;
   is_active: boolean;
-  business_name: string | null;
+  company_name: string;
+  company_logo: string;
   contact_person: string | null;
   gst_number: string | null;
   address: string | null;

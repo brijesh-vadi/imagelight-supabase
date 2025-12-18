@@ -1,7 +1,12 @@
 "use server";
 
 import { v4 as uuid } from "uuid";
-import { PRIVATE_BUCKET, PUBLIC_BUCKET } from "../constants";
+import {
+  DEALER_PRIVATE_BUCKET,
+  DEALER_PUBLIC_BUCKET,
+  MANUFACTURER_PRIVATE_BUCKET,
+  MANUFACTURER_PUBLIC_BUCKET,
+} from "../constants";
 import { createAdminClient } from "./admin";
 
 function generateFileName(originalName: string): string {
@@ -20,12 +25,14 @@ export async function uploadManufacturerLogo(
   const path = `${userId}/logo/${fileName}`;
 
   const { error } = await supabase.storage
-    .from(PUBLIC_BUCKET)
+    .from(MANUFACTURER_PUBLIC_BUCKET)
     .upload(path, file, { contentType: file.type, upsert: true });
 
   if (error) throw error;
 
-  const { data } = supabase.storage.from(PUBLIC_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage
+    .from(MANUFACTURER_PUBLIC_BUCKET)
+    .getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -39,7 +46,7 @@ export async function uploadManufacturerVerificationDocument(
   const path = `${userId}/documents/${fileName}`;
 
   const { error } = await supabase.storage
-    .from(PRIVATE_BUCKET)
+    .from(MANUFACTURER_PRIVATE_BUCKET)
     .upload(path, file, { contentType: file.type });
 
   if (error) throw error;
@@ -61,12 +68,14 @@ export async function uploadProductImages(
       const path = `${userId}/products/${productId}/${fileName}`;
 
       const { error } = await supabase.storage
-        .from(PUBLIC_BUCKET)
+        .from(MANUFACTURER_PUBLIC_BUCKET)
         .upload(path, file, { contentType: file.type });
 
       if (error) throw error;
 
-      const { data } = supabase.storage.from(PUBLIC_BUCKET).getPublicUrl(path);
+      const { data } = supabase.storage
+        .from(MANUFACTURER_PUBLIC_BUCKET)
+        .getPublicUrl(path);
       return data.publicUrl;
     }),
   );
@@ -80,7 +89,61 @@ export async function deleteManufacturerFile(
   isPrivate: boolean = false,
 ) {
   const supabase = createAdminClient();
-  const bucket = isPrivate ? PRIVATE_BUCKET : PUBLIC_BUCKET;
+  const bucket = isPrivate
+    ? MANUFACTURER_PRIVATE_BUCKET
+    : MANUFACTURER_PUBLIC_BUCKET;
+  const { error } = await supabase.storage.from(bucket).remove([filePath]);
+  if (error) throw error;
+}
+
+// ============ DEALER UPLOAD FUNCTIONS ============
+
+// PUBLIC: Dealer company logo
+export async function uploadDealerLogo(
+  file: File,
+  userId: string,
+): Promise<string> {
+  const supabase = createAdminClient();
+  const fileName = generateFileName(file.name);
+  const path = `${userId}/logo/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from(DEALER_PUBLIC_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: true });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from(DEALER_PUBLIC_BUCKET)
+    .getPublicUrl(path);
+  return data.publicUrl;
+}
+
+// PRIVATE: Dealer verification document
+export async function uploadDealerVerificationDocument(
+  file: File,
+  userId: string,
+): Promise<string> {
+  const supabase = createAdminClient();
+  const fileName = generateFileName(file.name);
+  const path = `${userId}/documents/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from(DEALER_PRIVATE_BUCKET)
+    .upload(path, file, { contentType: file.type });
+
+  if (error) throw error;
+
+  return path;
+}
+
+// Delete dealer file from any bucket
+export async function deleteDealerFile(
+  filePath: string,
+  isPrivate: boolean = false,
+) {
+  const supabase = createAdminClient();
+  const bucket = isPrivate ? DEALER_PRIVATE_BUCKET : DEALER_PUBLIC_BUCKET;
   const { error } = await supabase.storage.from(bucket).remove([filePath]);
   if (error) throw error;
 }

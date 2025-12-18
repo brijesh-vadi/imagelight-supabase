@@ -24,12 +24,22 @@ export default async function DealerPanelLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      {/* Sidebar */}
-      <DealerSidebar dealer={dealer} />
+    // <div className="flex h-screen overflow-hidden bg-background text-foreground">
+    //   {/* Sidebar */}
+    //   <DealerSidebar dealer={dealer} />
 
-      {/* Main content area */}
-      <main className="flex-1 p-4 overflow-auto">{children}</main>
+    //   {/* Main content area */}
+    //   <main className="flex-1 p-4 overflow-auto">{children}</main>
+    // </div>
+    <div className="h-screen overflow-hidden">
+      {dealer?.is_onboarded ? (
+        <div className="flex h-full overflow-hidden bg-background text-foreground">
+          <DealerSidebar dealer={dealer} />
+          <main className="flex-1 overflow-auto p-4">{children}</main>
+        </div>
+      ) : (
+        <main className="h-full overflow-hidden p-4">{children}</main>
+      )}
     </div>
   );
 }
