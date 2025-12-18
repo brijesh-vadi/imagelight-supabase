@@ -5,34 +5,47 @@ import { Role } from "./types";
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  const isManufacturerRoute = pathname.startsWith("/manufacturer");
+  const routes = [
+    {
+      prefix: "/manufacturer",
+      role: Role.MANUFACTURER,
+      authPages: ["/manufacturer/sign-in", "/manufacturer/sign-up"],
+      dashboard: "/manufacturer/dashboard",
+    },
+    {
+      prefix: "/dealer",
+      role: Role.DEALER,
+      authPages: ["/dealer/sign-in", "/dealer/sign-up"],
+      dashboard: "/dealer/dashboard",
+    },
+    {
+      prefix: "/admin",
+      role: Role.ADMIN,
+      authPages: ["/admin/sign-in"],
+      dashboard: "/admin/dashboard",
+    },
+  ];
 
-  if (!isManufacturerRoute) {
-    return NextResponse.next();
-  }
+  // Check each route type
+  for (const route of routes) {
+    if (pathname.startsWith(route.prefix)) {
+      const session = await getSession(route.role);
+      const isAuthPage = route.authPages.some((page) => pathname === page);
 
-  const session = await getSession(Role.MANUFACTURER);
+      if (session && isAuthPage) {
+        const url = request.nextUrl.clone();
+        url.pathname = route.dashboard;
+        return NextResponse.redirect(url);
+      }
 
-  if (!session) {
-    if (
-      pathname !== "/manufacturer/sign-in" &&
-      pathname !== "/manufacturer/sign-up"
-    ) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/manufacturer/sign-in";
-      return NextResponse.redirect(url);
+      if (!session && !isAuthPage) {
+        const url = request.nextUrl.clone();
+        url.pathname = route.authPages[0];
+        return NextResponse.redirect(url);
+      }
+
+      return NextResponse.next();
     }
-    return NextResponse.next();
-  }
-
-  const isAuthPage =
-    pathname === "/manufacturer/sign-in" ||
-    pathname === "/manufacturer/sign-up";
-
-  if (isAuthPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/manufacturer/dashboard";
-    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
@@ -40,6 +53,14 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

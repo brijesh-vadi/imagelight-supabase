@@ -2,7 +2,12 @@
 
 import { FileText, LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { destroySession } from "@/lib/supabase/session";
+import { Role } from "@/types";
 
 const navItems = [
   {
@@ -19,6 +24,15 @@ const navItems = [
 
 const AdminSidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    await destroySession(Role.ADMIN);
+    router.push("/admin/sign-in");
+    router.refresh();
+  };
 
   return (
     <aside className="flex h-screen w-64 flex-col bg-primary">
@@ -52,13 +66,16 @@ const AdminSidebar = () => {
 
       {/* Footer */}
       <div className="border-t border-primary-foreground/10 p-4">
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-primary-foreground/70 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+        <Button
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium
+                    bg-primary-foreground/10 hover:bg-primary-foreground/10 hover:text-destructive"
         >
           <LogOut className="h-5 w-5" />
           Sign Out
-        </button>
+          {isSigningOut && <Spinner />}
+        </Button>
       </div>
     </aside>
   );

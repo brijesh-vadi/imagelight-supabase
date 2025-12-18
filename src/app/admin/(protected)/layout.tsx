@@ -1,10 +1,19 @@
+import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/role/admin/shared/AdminSidebar";
+import { getSession } from "@/lib/supabase/session";
+import { Role } from "@/types";
 
-export default function AdminPanelLayout({
+export default async function AdminPanelLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getSession(Role.ADMIN);
+
+  if (!session) {
+    redirect("/admin/sign-in");
+  }
+
   return (
     <div className="flex h-full overflow-hidden bg-background text-foreground">
       {/* Sidebar */}

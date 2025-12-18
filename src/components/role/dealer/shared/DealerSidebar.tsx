@@ -51,9 +51,9 @@ const DealerSidebar = ({ dealer }: { dealer: Dealer }) => {
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-    destroySession(Role.DEALER);
+    await destroySession(Role.DEALER);
+    router.push("/dealer/sign-in");
     router.refresh();
-    setIsSigningOut(false);
   };
 
   return (

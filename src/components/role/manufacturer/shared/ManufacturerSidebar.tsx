@@ -63,9 +63,9 @@ const ManufacturerSidebar = ({
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
-    destroySession(Role.MANUFACTURER);
+    await destroySession(Role.MANUFACTURER);
+    router.push("/manufacturer/sign-in");
     router.refresh();
-    setIsSigningOut(false);
   };
   return (
     <aside className="flex h-screen w-64 flex-col bg-primary">

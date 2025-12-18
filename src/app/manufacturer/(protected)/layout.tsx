@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getManufacturerProfile } from "@/actions/manufacturer/auth.action";
 import ManufacturerSidebar from "@/components/role/manufacturer/shared/ManufacturerSidebar";
 import { getSession } from "@/lib/supabase/session";
@@ -9,8 +10,13 @@ export default async function ManufacturerLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession(Role.MANUFACTURER);
+
+  if (!session) {
+    redirect("/manufacturer/sign-in");
+  }
+
   const { data: manufacturer } = await getManufacturerProfile(
-    session?.userId ?? "",
+    session.userId,
   );
 
   return (

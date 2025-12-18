@@ -66,7 +66,7 @@ const DealerSignInForm = () => {
           <Button
             type="submit"
             className="w-full"
-            disabled={loading || isValid}
+            disabled={loading || !isValid}
           >
             {loading ? "Signing In..." : "Sign In"}
           </Button>
