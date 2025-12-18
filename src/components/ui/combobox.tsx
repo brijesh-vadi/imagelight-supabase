@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronsUpDown } from "lucide-react";
-import * as React from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -39,15 +39,15 @@ export function Combobox({
   disabled = false,
   valueKey = "name",
 }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const getOptionValue = (option: { id: number | string; name: string }) => {
     return valueKey === "id" ? String(option.id) : option.name;
   };
 
-  const selectedOption = options.find(
-    (option) => getOptionValue(option) === value,
-  );
+  const selectedOption = value
+    ? options.find((option) => getOptionValue(option) === value)
+    : null;
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>

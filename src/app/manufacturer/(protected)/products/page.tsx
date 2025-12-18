@@ -1,15 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCategories } from "@/actions/manufacturer/category.action";
-import {
-  getManufacturerProductById,
-  getManufacturerProducts,
-} from "@/actions/manufacturer/product.action";
+import { getManufacturerProductById } from "@/actions/manufacturer/product.action";
 import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddProductForm from "@/components/role/manufacturer/view/products/ManufacturerAddProductForm";
-import ManufacturerProductsListView from "@/components/role/manufacturer/view/products/ManufacturerProductsListView";
+import ManufacturerProductsClient from "@/components/role/manufacturer/view/products/ManufacturerProductsClient";
 import ManufacturerUpdateProductForm from "@/components/role/manufacturer/view/products/ManufacturerUpdateProductForm";
-import { Button } from "@/components/ui/button";
 import BackButton from "@/components/widgets/BackButton";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +12,7 @@ export const dynamic = "force-dynamic";
 interface Props {
   searchParams: Promise<{
     page?: string;
+    search?: string;
     "add-product"?: string;
     "update-id"?: string;
   }>;
@@ -28,6 +24,7 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
   const params = await searchParams;
 
   const page = Number(params.page ?? 1);
+  const search = params.search || "";
   const isAddMode = params["add-product"] !== undefined;
   const updateId = params["update-id"];
 
@@ -77,34 +74,12 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
     );
   }
 
-  const { data } = await getManufacturerProducts({
-    page,
-    limit: 9,
-  });
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="font-semibold text-2xl text-primary">Products</h1>
-          <p className="text-muted-foreground text-sm">
-            Manage and organize all your products, including details, pricing,
-            and categories.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/manufacturer/products?add-product">Add Product</Link>
-        </Button>
-      </div>
-
-      <ManufacturerProductsListView
-        products={data?.products ?? []}
-        total={data?.total ?? 0}
-        page={page}
-        limit={LIMIT}
-      />
-    </div>
+    <ManufacturerProductsClient
+      initialPage={page}
+      initialSearch={search}
+      limit={LIMIT}
+    />
   );
 };
 

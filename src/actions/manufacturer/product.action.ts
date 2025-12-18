@@ -177,18 +177,18 @@ export async function addProduct(
 }
 
 export async function getManufacturerProducts(
-  pagination: Pagination,
+  pagination: Pagination & { search?: string; categoryId?: string; unitId?: string; isActive?: string },
 ): Promise<ApiResponse<{ products: Product[]; total: number }>> {
   const session = await getSession(Role.MANUFACTURER);
 
   const supabase = await createClient();
 
-  const { page, limit } = pagination;
+  const { page, limit, search, categoryId, unitId, isActive } = pagination;
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
   try {
-    const { data, error, count } = await supabase
+    let query = supabase
       .from("products")
       .select(
         `
@@ -204,7 +204,27 @@ export async function getManufacturerProducts(
           `,
         { count: "exact" },
       )
-      .eq("manufacturer_id", session?.userId)
+      .eq("manufacturer_id", session?.userId);
+
+    if (search) {
+      query = query.or(
+        `name.ilike.%${search.trim()}%,sku.ilike.%${search.trim()}%`,
+      );
+    }
+
+    if (categoryId) {
+      query = query.eq("category_id", categoryId);
+    }
+
+    if (unitId) {
+      query = query.eq("unit_id", unitId);
+    }
+
+    if (isActive) {
+      query = query.eq("is_active", isActive === "true");
+    }
+
+    const { data, error, count } = await query
       .order("created_at", { ascending: false })
       .range(from, to);
 

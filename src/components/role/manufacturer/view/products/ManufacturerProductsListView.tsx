@@ -1,5 +1,4 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -16,6 +15,7 @@ interface Props {
   total: number;
   page: number;
   limit: number;
+  onPageChange?: (page: number) => void;
 }
 
 const ManufacturerProductsListView = ({
@@ -23,17 +23,14 @@ const ManufacturerProductsListView = ({
   limit,
   page,
   total,
+  onPageChange,
 }: Props) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const totalPages = Math.ceil(total / limit);
 
   const goToPage = (p: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(p));
-
-    router.push(`?${params.toString()}`, { scroll: true });
+    if (onPageChange) {
+      onPageChange(p);
+    }
   };
 
   return (
