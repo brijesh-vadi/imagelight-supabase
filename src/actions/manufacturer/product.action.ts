@@ -177,7 +177,12 @@ export async function addProduct(
 }
 
 export async function getManufacturerProducts(
-  pagination: Pagination & { search?: string; categoryId?: string; unitId?: string; isActive?: string },
+  pagination: Pagination & {
+    search?: string;
+    categoryId?: string;
+    unitId?: string;
+    isActive?: string;
+  },
 ): Promise<ApiResponse<{ products: Product[]; total: number }>> {
   const session = await getSession(Role.MANUFACTURER);
 

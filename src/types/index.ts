@@ -60,6 +60,7 @@ export interface Manufacturer {
   is_email_verified: boolean;
   is_mobile_verified: boolean;
   application_history?: ApplicationHistoryEntry[];
+  prodcuts?: Product[];
 }
 
 export interface Admin {
