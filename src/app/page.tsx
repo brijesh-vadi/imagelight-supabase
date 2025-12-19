@@ -3,10 +3,16 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div>
-      <Link href="/manufacturer/sign-up">
-        <Button>Manufacturer</Button>
-      </Link>
+    <div className="flex items-center gap-10">
+      <Button asChild>
+        <Link href="/manufacturer/sign-up">Manufacturer</Link>
+      </Button>
+      <Button asChild>
+        <Link href="/dealer/sign-up">Manufacturer</Link>
+      </Button>
+      <Button asChild>
+        <Link href="/admin/sign-in">admin</Link>
+      </Button>
     </div>
   );
 }
