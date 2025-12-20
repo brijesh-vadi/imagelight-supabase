@@ -18,46 +18,50 @@ import { cn, formatDate } from "@/lib/utils";
 import type { ApplicationHistoryEntry, ApplicationStatus } from "@/types";
 
 const statusConfig: Record<
-  string,
+  ApplicationStatus,
   {
     label: string;
-    description: string;
     icon: LucideIcon;
     color: string;
     dot: string;
+    dealerMessage: string;
+    manufacturerMessage: string;
     spinning?: boolean;
   }
 > = {
-  pending: {
+  PENDING: {
     label: "Pending Review",
-    description:
-      "We have received your application. Admin will review it soon.",
     icon: Clock,
     color: "text-yellow-600 bg-yellow-100",
     dot: "bg-yellow-500",
+    dealerMessage:
+      "Your request has been sent. Manufacturer will review it soon.",
+    manufacturerMessage: "Dealer has applied. Please review their application.",
   },
-  in_review: {
+  IN_REVIEW: {
     label: "Under Review",
-    description: "An admin is currently reviewing your application.",
     icon: Eye,
     color: "text-blue-600 bg-blue-100",
     dot: "bg-blue-500",
     spinning: true,
+    dealerMessage: "Manufacturer is reviewing your application.",
+    manufacturerMessage: "You are reviewing this dealer's application.",
   },
-  rejected: {
+  REJECTED: {
     label: "Application Rejected",
-    description:
-      "Your application was rejected. Please check feedback and resubmit.",
     icon: XCircle,
     color: "text-red-600 bg-red-100",
     dot: "bg-red-500",
+    dealerMessage: "Your dealership request was rejected. Check reason below.",
+    manufacturerMessage: "You rejected this dealership application.",
   },
-  approved: {
+  APPROVED: {
     label: "Approved!",
-    description: "Congratulations! Your account is now fully verified.",
     icon: CheckCircle2,
     color: "text-green-600 bg-green-100",
     dot: "bg-green-500",
+    dealerMessage: "Congratulations! You are now an approved dealer.",
+    manufacturerMessage: "You approved this dealer successfully.",
   },
 };
 
@@ -65,20 +69,26 @@ interface Props {
   currentStatus: ApplicationStatus;
   history: ApplicationHistoryEntry[];
   className?: string;
+  type?: "dealer" | "manufacturer";
 }
 
-const ApplicationTimeline = ({ currentStatus, history, className }: Props) => {
+const ApplicationTimeline = ({
+  currentStatus,
+  history,
+  className,
+  type,
+}: Props) => {
   const timelineEntries = history?.map((entry: ApplicationHistoryEntry) => {
-    const statusKey = entry.status.toLowerCase();
+    const statusKey = entry.status as ApplicationStatus;
     const entryConfig = statusConfig[statusKey];
 
-    let description = "";
-    if (entry.status.toUpperCase() === "REJECTED" && entry.message) {
-      description = entry.message;
-    } else if (entryConfig) {
-      description = entryConfig.description;
-    } else {
-      description = "Status updated";
+    let description =
+      type === "dealer"
+        ? statusConfig[entry.status].dealerMessage
+        : statusConfig[entry.status].manufacturerMessage;
+
+    if (entry.status === "REJECTED" && entry.message) {
+      description = `${description} — ${entry.message}`;
     }
 
     const admin = entry.admin && entry.admin.length > 0 ? entry.admin[0] : null;
@@ -92,7 +102,7 @@ const ApplicationTimeline = ({ currentStatus, history, className }: Props) => {
       timestamp: entry.created_at,
       icon: entryConfig?.icon || AlertCircle,
       dotColor: entryConfig?.dot || "bg-gray-400",
-      isCurrent: statusKey === currentStatus.toLowerCase(),
+      isCurrent: statusKey === currentStatus,
     };
   });
 

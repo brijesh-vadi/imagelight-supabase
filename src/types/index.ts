@@ -152,3 +152,17 @@ export interface Dealer {
   created_at: string;
   updated_at: string;
 }
+
+export interface DealerApplicationHistoryEntry {
+  id?: string;
+  status: ApplicationStatus;
+  message: string | null;
+  created_at: string;
+  updated_at?: string;
+  approver?: Manufacturer | null;
+}
+
+export interface DealerApplicationStatusData {
+  currentStatus: ApplicationStatus | null;
+  history: DealerApplicationHistoryEntry[];
+}

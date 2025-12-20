@@ -1,10 +1,19 @@
+"use client";
+
 import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  getDealerApplicationHistory,
+  sendDealershipRequest,
+} from "@/actions/dealer/application.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import ApplicationTimeline from "@/components/widgets/ApplicationTimeline";
 import {
   Carousel,
   CarouselContent,
@@ -13,64 +22,121 @@ import {
   CarouselPrevious,
 } from "@/components/widgets/EmblaCarousel";
 import { formatPrice, shortenText } from "@/lib/utils";
-import type { Manufacturer, Product } from "@/types";
+import type {
+  ApplicationStatus,
+  DealerApplicationHistoryEntry,
+  Manufacturer,
+  Product,
+} from "@/types";
 
 interface Props {
   manufacturer: Manufacturer & { products?: Product[]; totalProducts?: number };
 }
 
 const ManufacturerDetailsView = ({ manufacturer }: Props) => {
+  const [isApplyingDealership, setIsApplyingDealership] = useState(false);
+  const [hasApplication, setHasApplication] = useState(false);
+  const [history, setHistory] = useState<DealerApplicationHistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  const fetchHistory = useCallback(async () => {
+    setLoadingHistory(true);
+
+    const res = await getDealerApplicationHistory();
+    console.log("res", res);
+
+    if (!res.success) {
+      toast.error(res.message);
+      setHistory([]);
+      setHasApplication(false);
+    } else {
+      setHistory(res.data || []);
+      setHasApplication((res.data || []).length > 0);
+    }
+
+    setLoadingHistory(false);
+  }, []);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  const handleApplyDealership = async () => {
+    setIsApplyingDealership(true);
+    try {
+      const result = await sendDealershipRequest(manufacturer.id);
+      if (!result.success) {
+        toast.error(result.message || "Something went wrong");
+        return;
+      }
+      toast.success(result.message);
+      await fetchHistory();
+    } catch (err: any) {
+      toast.error(err?.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsApplyingDealership(false);
+    }
+  };
+
+  const currentStatus =
+    history.length > 0
+      ? (history[history.length - 1].status as ApplicationStatus)
+      : null;
+  const isRejected = currentStatus === "REJECTED";
+  const rejectionMessage = history.find(
+    (h) => h.status === "REJECTED",
+  )?.message;
+
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-8">
-        <Card className="p-0 gap-0 overflow-hidden">
-          <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
-            <CardTitle className="text-base">About</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="flex items-stretch gap-10">
-              {/* Logo + Name */}
-              <div className="flex items-center gap-4 max-w-105 shrink-0">
-                <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-primary/10">
-                  {manufacturer?.company_logo ? (
-                    <Avatar className="h-full w-full">
-                      <AvatarImage
-                        src={manufacturer.company_logo}
-                        alt={`${manufacturer?.company_name} logo`}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="text-lg">
-                        {manufacturer?.company_name?.[0]}
-                        {manufacturer?.company_name?.[1]}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-muted font-semibold text-muted-foreground text-xl">
-                      {manufacturer?.company_name?.charAt(0).toUpperCase() ||
-                        "?"}
-                    </div>
-                  )}
+      <div className="flex gap-8">
+        {/* Left Column */}
+        <div className="flex flex-col w-1/2 gap-8">
+          {/* About */}
+          <Card className="p-0 gap-0 overflow-hidden">
+            <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
+              <CardTitle className="text-base">About</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-4">
+                {/* Logo + Name */}
+                <div className="flex items-center gap-4">
+                  <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-primary/10">
+                    {manufacturer?.company_logo ? (
+                      <Avatar className="h-full w-full">
+                        <AvatarImage
+                          src={manufacturer.company_logo}
+                          alt={`${manufacturer?.company_name} logo`}
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="text-lg">
+                          {manufacturer?.company_name?.[0]}
+                          {manufacturer?.company_name?.[1]}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-muted font-semibold text-muted-foreground text-xl">
+                        {manufacturer?.company_name?.charAt(0).toUpperCase() ||
+                          "?"}
+                      </div>
+                    )}
+                  </div>
+                  <h1 className="font-medium text-xl text-primary">
+                    {manufacturer?.company_name || "Unnamed Company"}
+                  </h1>
                 </div>
-
-                <h1 className="font-medium text-xl text-primary">
-                  {manufacturer?.company_name || "Unnamed Company"}
-                </h1>
+                {/* Horizontal Separator */}
+                <Separator />
+                {/* Description */}
+                <div className="text-sm text-muted-foreground font-medium">
+                  {manufacturer?.company_description ||
+                    "No description available"}
+                </div>
               </div>
-
-              {/* Visible Vertical Separator */}
-              <div className="w-px bg-border self-stretch" />
-
-              {/* Description */}
-              <div className="text-sm text-muted-foreground font-medium flex-1 min-w-0 wrap-break-word whitespace-normal">
-                {manufacturer?.company_description ||
-                  "No description available"}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="flex w-full gap-8">
+            </CardContent>
+          </Card>
           {/* Contact Information */}
-          <Card className="p-0 gap-0 overflow-hidden w-1/2">
+          <Card className="p-0 gap-0 overflow-hidden">
             <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
               <CardTitle className="flex items-center gap-2 text-md mx-auto">
                 Contact Info
@@ -111,9 +177,8 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
               </div>
             </CardContent>
           </Card>
-
           {/* Business Information */}
-          <Card className="p-0 gap-0 overflow-hidden w-1/2">
+          <Card className="p-0 gap-0 overflow-hidden">
             <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
               <CardTitle className="text-base">Business Info</CardTitle>
             </CardHeader>
@@ -153,12 +218,20 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
             </CardContent>
           </Card>
         </div>
+        {/* Right Column - Application Status */}
+        <div className="w-1/2">
+          <ApplicationTimeline
+            currentStatus={currentStatus || "PENDING"}
+            history={history || []}
+            className="h-[calc(100vh-400px)]"
+            type="dealer"
+          />
+        </div>
       </div>
       <Card className="p-0 gap-0 overflow-hidden">
         <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
           <CardTitle className="flex items-center">
             <span className="flex-1 text-base text-center">Products</span>
-
             {manufacturer.totalProducts && manufacturer.totalProducts > 3 && (
               <Button size="sm" className="ml-auto">
                 View All
@@ -209,7 +282,6 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                         </Carousel>
                       </div>
                     </CardHeader>
-
                     <CardContent className="px-4 pb-4 flex flex-col gap-3">
                       {/* Product Name */}
                       <div className="flex items-center justify-between">
@@ -217,12 +289,10 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                           {shortenText(product.name, 30)}
                         </h3>
                       </div>
-
                       {/* Description */}
                       <p className="line-clamp-2 text-muted-foreground text-xs">
                         {shortenText(product.description, 50)}
                       </p>
-
                       {/* Dealer Price */}
                       <div className="flex items-start gap-6 bg-muted p-2 rounded-md">
                         {/* Dealer Price */}
@@ -234,10 +304,8 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                             {formatPrice(product.dealer_price)}
                           </span>
                         </div>
-
                         {/* Separator */}
                         <Separator orientation="vertical" className="h-12" />
-
                         {/* Regular Price */}
                         <div className="flex flex-col gap-1 flex-1">
                           <Label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
@@ -248,7 +316,6 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                           </span>
                         </div>
                       </div>
-
                       {/* Stock */}
                       <div className="flex items-center gap-2">
                         <Label>Stock :</Label>
@@ -256,7 +323,6 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                           {product.stock}
                         </span>
                       </div>
-
                       {/* Min.Order Quantity */}
                       <div className="flex items-center gap-2">
                         <Label>Min. order quantity :</Label>
@@ -264,7 +330,6 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                           {product.min_order_quantity}
                         </span>
                       </div>
-
                       {/* Category */}
                       <div className="flex items-center gap-2">
                         <Label>Category :</Label>
