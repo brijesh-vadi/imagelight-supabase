@@ -156,3 +156,75 @@ export async function getDealerApplicationHistory(): Promise<
     };
   }
 }
+
+export async function getDealerApplicationHistoryForManufacturer(
+  manufacturerId: string,
+): Promise<ApiResponse<DealerApplicationHistoryEntry[]>> {
+  const supabase = await createClient();
+  const session = await getSession(Role.DEALER);
+
+  if (!session?.userId) {
+    return {
+      success: false,
+      message: "Unauthorized. Please login again.",
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("dealer_application_history")
+      .select(
+        `
+          id,
+          status,
+          message,
+          created_at,
+          updated_at,
+          approver:approver_id (
+            id,
+            company_name,
+            company_logo,
+            email,
+            mobile
+          )
+        `,
+      )
+      .eq("dealer_id", session.userId)
+      .eq("manufacturer_id", manufacturerId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Fetch dealer application history error:", error);
+      return {
+        success: false,
+        message: "Failed to fetch application history.",
+      };
+    }
+
+    const mapped: DealerApplicationHistoryEntry[] = (data || []).map(
+      (entry: any) => ({
+        id: entry.id,
+        status: entry.status,
+        message: entry.message,
+        created_at: entry.created_at,
+        updated_at: entry.updated_at,
+        approver:
+          Array.isArray(entry.approver) && entry.approver.length > 0
+            ? entry.approver[0]
+            : entry.approver || null,
+      }),
+    );
+
+    return {
+      success: true,
+      message: "Application history fetched successfully.",
+      data: mapped,
+    };
+  } catch (err) {
+    console.error("Dealer application history error:", err);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again.",
+    };
+  }
+}

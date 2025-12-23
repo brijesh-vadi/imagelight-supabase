@@ -30,9 +30,9 @@ const DealersListView = () => {
       <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
           <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium">No manufacturers found</p>
+          <p className="text-lg font-medium">No dealers found</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Check back later for available manufacturers
+            Check back later when dealers apply for dealership
           </p>
         </div>
       </div>

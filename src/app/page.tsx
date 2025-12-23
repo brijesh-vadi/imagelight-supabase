@@ -8,7 +8,7 @@ export default function Home() {
         <Link href="/manufacturer/sign-up">Manufacturer</Link>
       </Button>
       <Button asChild>
-        <Link href="/dealer/sign-up">Manufacturer</Link>
+        <Link href="/dealer/sign-up">Dealer</Link>
       </Button>
       <Button asChild>
         <Link href="/admin/sign-in">admin</Link>

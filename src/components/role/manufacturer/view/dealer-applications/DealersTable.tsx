@@ -96,7 +96,9 @@ const DealersTable = ({ dealersData }: Props) => {
 
               <TableCell className="pr-5 text-right">
                 <Button size="sm" asChild>
-                  <Link href={`/manufacturer/dealers/${dealer.id}`}>View</Link>
+                  <Link href={`/manufacturer/dealer-applications/${dealer.id}`}>
+                    View
+                  </Link>
                 </Button>
               </TableCell>
             </TableRow>

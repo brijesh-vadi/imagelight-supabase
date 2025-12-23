@@ -15,7 +15,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn, formatDate } from "@/lib/utils";
-import type { ApplicationHistoryEntry, ApplicationStatus } from "@/types";
+import type {
+  ApplicationHistoryEntry,
+  ApplicationStatus,
+  DealerApplicationHistoryEntry,
+} from "@/types";
 
 const statusConfig: Record<
   ApplicationStatus,
@@ -67,7 +71,7 @@ const statusConfig: Record<
 
 interface Props {
   currentStatus: ApplicationStatus;
-  history: ApplicationHistoryEntry[];
+  history: ApplicationHistoryEntry[] | DealerApplicationHistoryEntry[];
   className?: string;
   type?: "dealer" | "manufacturer";
 }
@@ -78,33 +82,49 @@ const ApplicationTimeline = ({
   className,
   type,
 }: Props) => {
-  const timelineEntries = history?.map((entry: ApplicationHistoryEntry) => {
-    const statusKey = entry.status as ApplicationStatus;
-    const entryConfig = statusConfig[statusKey];
+  const timelineEntries = history?.map(
+    (entry: ApplicationHistoryEntry | DealerApplicationHistoryEntry) => {
+      const statusKey = entry.status as ApplicationStatus;
+      const entryConfig = statusConfig[statusKey];
 
-    let description =
-      type === "dealer"
-        ? statusConfig[entry.status].dealerMessage
-        : statusConfig[entry.status].manufacturerMessage;
+      let description =
+        type === "dealer"
+          ? statusConfig[entry.status].dealerMessage
+          : statusConfig[entry.status].manufacturerMessage;
 
-    if (entry.status === "REJECTED" && entry.message) {
-      description = `${description} — ${entry.message}`;
-    }
+      if (entry.status === "REJECTED" && entry.message) {
+        description = `${description} — ${entry.message}`;
+      }
 
-    const admin = entry.admin && entry.admin.length > 0 ? entry.admin[0] : null;
-    if (admin && entry.status.toUpperCase() !== "PENDING") {
-      description += ` — Updated by ${admin.username || "Admin"}`;
-    }
+      // For manufacturer applications (admin reviewing)
+      if ("admin" in entry) {
+        const admin =
+          entry.admin && entry.admin.length > 0 ? entry.admin[0] : null;
+        if (admin && entry.status.toUpperCase() !== "PENDING") {
+          description += ` — Updated by ${admin.username || "Admin"}`;
+        }
+      }
 
-    return {
-      title: entryConfig?.label || entry.status,
-      description,
-      timestamp: entry.created_at,
-      icon: entryConfig?.icon || AlertCircle,
-      dotColor: entryConfig?.dot || "bg-gray-400",
-      isCurrent: statusKey === currentStatus,
-    };
-  });
+      // For dealer applications (manufacturer reviewing)
+      if ("approver" in entry) {
+        const approver = entry.approver;
+        if (approver && entry.status.toUpperCase() !== "PENDING") {
+          const updaterName =
+            type === "dealer" ? approver.company_name || "Manufacturer" : "You";
+          description += ` — Updated by ${updaterName}`;
+        }
+      }
+
+      return {
+        title: entryConfig?.label || entry.status,
+        description,
+        timestamp: entry.created_at,
+        icon: entryConfig?.icon || AlertCircle,
+        dotColor: entryConfig?.dot || "bg-gray-400",
+        isCurrent: statusKey === currentStatus,
+      };
+    },
+  );
 
   return (
     <Card className={cn("overflow-hidden p-0 gap-0", className)}>

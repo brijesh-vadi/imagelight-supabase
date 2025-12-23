@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  getDealerApplicationHistory,
+  getDealerApplicationHistoryForManufacturer,
   sendDealershipRequest,
 } from "@/actions/dealer/application.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import ApplicationTimeline from "@/components/widgets/ApplicationTimeline";
 import {
   Carousel,
@@ -21,7 +22,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/widgets/EmblaCarousel";
-import { formatPrice, shortenText } from "@/lib/utils";
+import { cn, formatPrice, shortenText } from "@/lib/utils";
 import type {
   ApplicationStatus,
   DealerApplicationHistoryEntry,
@@ -42,7 +43,9 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
   const fetchHistory = useCallback(async () => {
     setLoadingHistory(true);
 
-    const res = await getDealerApplicationHistory();
+    const res = await getDealerApplicationHistoryForManufacturer(
+      manufacturer.id,
+    );
     console.log("res", res);
 
     if (!res.success) {
@@ -55,7 +58,7 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
     }
 
     setLoadingHistory(false);
-  }, []);
+  }, [manufacturer.id]);
 
   useEffect(() => {
     fetchHistory();
@@ -83,9 +86,9 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
       ? (history[history.length - 1].status as ApplicationStatus)
       : null;
   const isRejected = currentStatus === "REJECTED";
-  const rejectionMessage = history.find(
-    (h) => h.status === "REJECTED",
-  )?.message;
+  const rejectionMessage = isRejected
+    ? history.find((h) => h.status === "REJECTED")?.message
+    : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -220,12 +223,38 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
         </div>
         {/* Right Column - Application Status */}
         <div className="w-1/2">
-          <ApplicationTimeline
-            currentStatus={currentStatus || "PENDING"}
-            history={history || []}
-            className="h-[calc(100vh-400px)]"
-            type="dealer"
-          />
+          {!hasApplication && !loadingHistory ? (
+            <Card
+              className={cn("overflow-hidden p-0 gap-0 h-[calc(100vh-400px)]")}
+            >
+              <CardHeader className="border-b bg-muted text-center p-4">
+                <CardTitle className="text-2xl">Application Timeline</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <p className="text-muted-foreground text-sm">
+                    You haven't applied for dealership with this manufacturer
+                    yet.
+                  </p>
+                  <Button
+                    onClick={handleApplyDealership}
+                    disabled={isApplyingDealership}
+                    size="lg"
+                  >
+                    <span>Apply for dealership</span>
+                    {isApplyingDealership && <Spinner />}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <ApplicationTimeline
+              currentStatus={currentStatus || "PENDING"}
+              history={history || []}
+              className="h-[calc(100vh-400px)]"
+              type="dealer"
+            />
+          )}
         </div>
       </div>
       <Card className="p-0 gap-0 overflow-hidden">
