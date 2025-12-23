@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock,
   Eye,
+  Loader2,
   type LucideIcon,
   XCircle,
 } from "lucide-react";
@@ -74,6 +75,7 @@ interface Props {
   history: ApplicationHistoryEntry[] | DealerApplicationHistoryEntry[];
   className?: string;
   type?: "dealer" | "manufacturer";
+  isLoading?: boolean;
 }
 
 const ApplicationTimeline = ({
@@ -81,6 +83,7 @@ const ApplicationTimeline = ({
   history,
   className,
   type,
+  isLoading = false,
 }: Props) => {
   const timelineEntries = history?.map(
     (entry: ApplicationHistoryEntry | DealerApplicationHistoryEntry) => {
@@ -135,7 +138,11 @@ const ApplicationTimeline = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6 overflow-scroll">
-        {timelineEntries?.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : timelineEntries?.length === 0 ? (
           <p className="text-center text-muted-foreground">
             No timeline events yet.
           </p>

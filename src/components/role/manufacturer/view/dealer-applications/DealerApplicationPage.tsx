@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import type {
+  ApplicationStatus,
+  Dealer,
+  DealerApplicationHistoryEntry,
+} from "@/types";
 import DealerApplicationActions from "./DealerApplicationActions";
 import DealerDetailsView from "./DealerDetailsView";
-import type { ApplicationStatus, Dealer, DealerApplicationHistoryEntry } from "@/types";
 
 interface Props {
   initialDealer: Dealer & {
@@ -14,9 +18,9 @@ interface Props {
 }
 
 const DealerApplicationPage = ({ initialDealer, dealerId }: Props) => {
-  const [applicationStatus, setApplicationStatus] = useState<ApplicationStatus | undefined>(
-    initialDealer.application_status
-  );
+  const [applicationStatus, setApplicationStatus] = useState<
+    ApplicationStatus | undefined
+  >(initialDealer.application_status);
 
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     setApplicationStatus(newStatus);
@@ -42,11 +46,11 @@ const DealerApplicationPage = ({ initialDealer, dealerId }: Props) => {
           />
         </div>
       </div>
-      <DealerDetailsView 
+      <DealerDetailsView
         dealer={{
           ...initialDealer,
-          application_status: applicationStatus
-        }} 
+          application_status: applicationStatus,
+        }}
       />
     </div>
   );

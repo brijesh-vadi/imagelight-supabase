@@ -1,12 +1,11 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  getDealerApplicationHistoryForManufacturer,
-  sendDealershipRequest,
-} from "@/actions/dealer/application.action";
+import { sendDealershipRequest } from "@/actions/dealer/application.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,37 +31,13 @@ import type {
 
 interface Props {
   manufacturer: Manufacturer & { products?: Product[]; totalProducts?: number };
+  history: DealerApplicationHistoryEntry[];
 }
 
-const ManufacturerDetailsView = ({ manufacturer }: Props) => {
+const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
+  const router = useRouter();
   const [isApplyingDealership, setIsApplyingDealership] = useState(false);
-  const [hasApplication, setHasApplication] = useState(false);
-  const [history, setHistory] = useState<DealerApplicationHistoryEntry[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-
-  const fetchHistory = useCallback(async () => {
-    setLoadingHistory(true);
-
-    const res = await getDealerApplicationHistoryForManufacturer(
-      manufacturer.id,
-    );
-    console.log("res", res);
-
-    if (!res.success) {
-      toast.error(res.message);
-      setHistory([]);
-      setHasApplication(false);
-    } else {
-      setHistory(res.data || []);
-      setHasApplication((res.data || []).length > 0);
-    }
-
-    setLoadingHistory(false);
-  }, [manufacturer.id]);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+  const hasApplication = history && history.length > 0;
 
   const handleApplyDealership = async () => {
     setIsApplyingDealership(true);
@@ -73,7 +48,7 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
         return;
       }
       toast.success(result.message);
-      await fetchHistory();
+      router.refresh(); // Refresh to show the new application
     } catch (err: any) {
       toast.error(err?.message || "Something went wrong. Please try again.");
     } finally {
@@ -82,13 +57,11 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
   };
 
   const currentStatus =
-    history.length > 0
+    history && history.length > 0
       ? (history[history.length - 1].status as ApplicationStatus)
       : null;
-  const isRejected = currentStatus === "REJECTED";
-  const rejectionMessage = isRejected
-    ? history.find((h) => h.status === "REJECTED")?.message
-    : null;
+  
+  const isApproved = currentStatus === "APPROVED";
 
   return (
     <div className="flex flex-col gap-8">
@@ -131,9 +104,8 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                 {/* Horizontal Separator */}
                 <Separator />
                 {/* Description */}
-                <div className="text-sm text-muted-foreground font-medium">
-                  {manufacturer?.company_description ||
-                    "No description available"}
+                <div className="text-sm text-muted-foreground font-medium wrap-break-word">
+                  {manufacturer?.company_description}
                 </div>
               </div>
             </CardContent>
@@ -145,8 +117,15 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                 Contact Info
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm p-4">
-              <div className="grid gap-2 text-sm">
+            <CardContent className="space-y-3 text-sm p-4 relative">
+              {!isApproved && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-b-lg bg-background/50 backdrop-blur-sm">
+                  <p className="text-muted-foreground text-sm font-medium text-center px-4">
+                    Get approved to view contact details
+                  </p>
+                </div>
+              )}
+              <div className={`grid gap-2 text-sm ${!isApproved ? "blur-sm" : ""}`}>
                 <div className="flex justify-between gap-4 font-medium">
                   <span>Contact Person</span>
                   <span className="text-muted-foreground">
@@ -223,7 +202,7 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
         </div>
         {/* Right Column - Application Status */}
         <div className="w-1/2">
-          {!hasApplication && !loadingHistory ? (
+          {!hasApplication ? (
             <Card
               className={cn("overflow-hidden p-0 gap-0 h-[calc(100vh-400px)]")}
             >
@@ -239,10 +218,8 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
                   <Button
                     onClick={handleApplyDealership}
                     disabled={isApplyingDealership}
-                    size="lg"
                   >
-                    <span>Apply for dealership</span>
-                    {isApplyingDealership && <Spinner />}
+                    Apply for Dealership {isApplyingDealership && <Spinner />}
                   </Button>
                 </div>
               </CardContent>
@@ -250,7 +227,7 @@ const ManufacturerDetailsView = ({ manufacturer }: Props) => {
           ) : (
             <ApplicationTimeline
               currentStatus={currentStatus || "PENDING"}
-              history={history || []}
+              history={history}
               className="h-[calc(100vh-400px)]"
               type="dealer"
             />

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/supabase/session";
 import {
@@ -74,6 +75,8 @@ export async function sendDealershipRequest(
       updated_at: inserted.updated_at,
       approver: null,
     };
+
+    revalidatePath(`${`/dealer/manufacturers/${manufacturerId}`}`);
 
     return {
       success: true,

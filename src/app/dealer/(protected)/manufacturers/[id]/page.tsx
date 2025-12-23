@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getDealerApplicationHistoryForManufacturer } from "@/actions/dealer/application.action";
 import { getManufacturerById } from "@/actions/dealer/manufacturer.action";
 import ManufacturerDetailsView from "@/components/role/dealer/views/manufacturers/ManufacturerDetailsView";
 
@@ -12,6 +13,10 @@ const ManufacturerDetailsPage = async ({ params }: Props) => {
   const { data: manufacturer } = await getManufacturerById(id, true);
 
   if (!manufacturer) notFound();
+
+  const { data: history } = await getDealerApplicationHistoryForManufacturer(
+    manufacturer.id,
+  );
 
   return (
     <div className="space-y-4">
@@ -27,7 +32,10 @@ const ManufacturerDetailsPage = async ({ params }: Props) => {
           </p>
         </div>
       </div>
-      <ManufacturerDetailsView manufacturer={manufacturer} />
+      <ManufacturerDetailsView
+        manufacturer={manufacturer}
+        history={history || []}
+      />
     </div>
   );
 };

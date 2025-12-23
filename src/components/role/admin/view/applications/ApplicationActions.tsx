@@ -106,7 +106,7 @@ const ApplicationActions = ({ manufacturerId, applicationStatus }: Props) => {
     return (
       <Button onClick={handleStartReview} disabled={loadingAction !== null}>
         <Eye className="mr-2 h-4 w-4" />
-        {loadingAction === "START_REVIEW" ? "Starting..." : "Start Review"}
+        Start Review {loadingAction === "START_REVIEW" && <Spinner />}
       </Button>
     );
   }

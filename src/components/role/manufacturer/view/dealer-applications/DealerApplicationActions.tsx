@@ -117,7 +117,7 @@ const DealerApplicationActions = ({
     return (
       <Button onClick={handleStartReview} disabled={loadingAction !== null}>
         <Eye className="mr-2 h-4 w-4" />
-        {loadingAction === "START_REVIEW" ? "Starting..." : "Start Review"}
+        Start Review {loadingAction === "START_REVIEW" && <Spinner />}
       </Button>
     );
   }
@@ -135,7 +135,7 @@ const DealerApplicationActions = ({
           onClick={() => setRejectDialogOpen(true)}
           disabled={loadingAction !== null}
         >
-          Reject
+          Reject {loadingAction === "REJECT" && <Spinner />}
         </Button>
       </div>
 
