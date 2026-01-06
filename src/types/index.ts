@@ -35,6 +35,23 @@ export enum Role {
   ADMIN = "ADMIN",
 }
 
+export enum OrderStatus {
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  SHIPPED = "SHIPPED",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  REJECTED = "REJECTED",
+}
+
+export enum PaymentStatus {
+  UNPAID = "UNPAID",
+  PARTIALLY_PAID = "PARTIALLY_PAID",
+  PAID = "PAID",
+  REFUNDED = "REFUNDED",
+  CANCELLED = "CANCELLED",
+}
+
 export interface Manufacturer {
   id: string;
   created_at: string;
@@ -165,4 +182,15 @@ export interface DealerApplicationHistoryEntry {
 export interface DealerApplicationStatusData {
   currentStatus: ApplicationStatus | null;
   history: DealerApplicationHistoryEntry[];
+}
+
+export interface CartItem {
+  id: string;
+  dealerId: string;
+  productId: string;
+  quantity: number;
+  addedAt: string;
+  updatedAt: string;
+
+  product?: Product;
 }

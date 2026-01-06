@@ -104,61 +104,98 @@ export async function getDealersAppliedToManufacturer({
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error } = await supabase
+    // First, get all unique dealer IDs with their latest history entry
+    const { data: allHistory, error: historyError } = await supabase
       .from("dealer_application_history")
       .select(
         `
+        dealer_id,
         status,
         message,
         created_at,
-        updated_at,
-        dealer:dealers!dealer_application_history_dealer_id_fkey (
-          id,
-          email,
-          mobile,
-          is_email_verified,
-          is_mobile_verified,
-          is_onboarded,
-          is_active,
-          company_name,
-          company_logo,
-          contact_person,
-          gst_number,
-          address,
-          city,
-          state,
-          pincode,
-          verification_document,
-          created_at,
-          updated_at
-        )
-      `,
-        { count: "exact" },
+        updated_at
+      `
       )
       .eq("manufacturer_id", session?.userId)
-      .order("created_at", { ascending: false })
-      .range(from, to);
+      .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Supabase error:", error);
+    if (historyError) {
+      console.error("Supabase error:", historyError);
       return {
         success: false,
         message: "Failed to fetch dealers who applied.",
       };
     }
 
-    const result =
-      data?.map((row: any) => ({
-        dealer: row.dealer,
-        status: row.status,
-        message: row.message,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-      })) ?? [];
+    // Group by dealer_id and get the latest entry for each dealer
+    const latestByDealer = new Map();
+    allHistory?.forEach((entry) => {
+      if (!latestByDealer.has(entry.dealer_id)) {
+        latestByDealer.set(entry.dealer_id, entry);
+      }
+    });
+
+    // Get unique dealer IDs
+    const uniqueDealerIds = Array.from(latestByDealer.keys());
+
+    // Fetch dealer details for unique dealers
+    const { data: dealers, error: dealerError } = await supabase
+      .from("dealers")
+      .select(
+        `
+        id,
+        email,
+        mobile,
+        is_email_verified,
+        is_mobile_verified,
+        is_onboarded,
+        is_active,
+        company_name,
+        company_logo,
+        contact_person,
+        gst_number,
+        address,
+        city,
+        state,
+        pincode,
+        verification_document,
+        created_at,
+        updated_at
+      `
+      )
+      .in("id", uniqueDealerIds);
+
+    if (dealerError) {
+      console.error("Dealer fetch error:", dealerError);
+      return {
+        success: false,
+        message: "Failed to fetch dealer details.",
+      };
+    }
+
+    // Combine dealer info with their latest status
+    const result = dealers?.map((dealer) => {
+      const latestHistory = latestByDealer.get(dealer.id);
+      return {
+        dealer,
+        status: latestHistory.status,
+        message: latestHistory.message,
+        created_at: latestHistory.created_at,
+        updated_at: latestHistory.updated_at,
+      };
+    }) ?? [];
+
+    // Sort by created_at descending
+    result.sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    // Apply pagination
+    const paginatedResult = result.slice(from, to + 1);
 
     return {
       success: true,
-      data: result,
+      data: paginatedResult,
     };
   } catch (err) {
     console.error("Unexpected error:", err);

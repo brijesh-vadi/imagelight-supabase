@@ -44,7 +44,7 @@ const DealersListView = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Input className="w-64" />
+        <Input className="w-64" placeholder="Search dealer..." />
       </div>
       <DealersTable dealersData={dealersData} />
     </div>

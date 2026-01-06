@@ -60,7 +60,7 @@ const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
     history && history.length > 0
       ? (history[history.length - 1].status as ApplicationStatus)
       : null;
-  
+
   const isApproved = currentStatus === "APPROVED";
 
   return (
@@ -125,7 +125,9 @@ const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
                   </p>
                 </div>
               )}
-              <div className={`grid gap-2 text-sm ${!isApproved ? "blur-sm" : ""}`}>
+              <div
+                className={`grid gap-2 text-sm ${!isApproved ? "blur-sm" : ""}`}
+              >
                 <div className="flex justify-between gap-4 font-medium">
                   <span>Contact Person</span>
                   <span className="text-muted-foreground">

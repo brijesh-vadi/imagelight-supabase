@@ -23,16 +23,16 @@ interface Props {
   }[];
 }
 
-const statusVariant = (status: ApplicationStatus) => {
+const statusBadgeClass = (status: ApplicationStatus) => {
   switch (status) {
     case "APPROVED":
-      return "default";
+      return "border-green-500 bg-green-100 text-green-700";
     case "REJECTED":
-      return "destructive";
+      return "border-red-500 bg-red-100 text-red-700";
     case "IN_REVIEW":
-      return "secondary";
+      return "border-yellow-500 bg-yellow-100 text-yellow-700";
     default:
-      return "outline";
+      return "border-gray-300 bg-gray-100 text-gray-700";
   }
 };
 
@@ -91,7 +91,12 @@ const DealersTable = ({ dealersData }: Props) => {
               </TableCell>
 
               <TableCell className="text-center">
-                <Badge variant={statusVariant(row.status)}>{row.status}</Badge>
+                <Badge
+                  variant="outline"
+                  className={statusBadgeClass(row.status)}
+                >
+                  {row.status}
+                </Badge>
               </TableCell>
 
               <TableCell className="pr-5 text-right">
