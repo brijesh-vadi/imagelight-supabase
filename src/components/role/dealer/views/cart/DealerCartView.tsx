@@ -12,6 +12,7 @@ import {
   removeFromCart,
   updateCartItemQuantity,
 } from "@/actions/dealer/cart.action";
+import { createOrdersFromCart } from "@/actions/dealer/order.action";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,8 +25,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { formatPrice } from "@/lib/utils";
 
 interface Props {
@@ -38,6 +49,10 @@ const DealerCartView = ({ initialCartItems }: Props) => {
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
+  const [notes, setNotes] = useState("");
 
   const updateQuantityMutation = useMutation({
     mutationFn: ({
@@ -104,6 +119,27 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     },
   });
 
+  const checkoutMutation = useMutation({
+    mutationFn: (input: {
+      shipping_address: string;
+      billing_address: string;
+      notes?: string;
+    }) => createOrdersFromCart(input),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(result.message);
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+        setShowCheckoutDialog(false);
+        router.push("/dealer/orders");
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: () => {
+      toast.error("Failed to create orders");
+    },
+  });
+
   const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     updateQuantityMutation.mutate({ cartItemId, quantity: newQuantity });
@@ -117,6 +153,30 @@ const DealerCartView = ({ initialCartItems }: Props) => {
 
   const handleClearCart = () => {
     clearCartMutation.mutate();
+  };
+
+  const handleCheckout = () => {
+    if (!shippingAddress.trim()) {
+      toast.error("Please enter shipping address");
+      return;
+    }
+    if (!billingAddress.trim()) {
+      toast.error("Please enter billing address");
+      return;
+    }
+
+    checkoutMutation.mutate({
+      shipping_address: shippingAddress,
+      billing_address: billingAddress,
+      notes: notes.trim() || undefined,
+    });
+  };
+
+  const getManufacturerCount = () => {
+    const manufacturers = new Set(
+      cartItems.map((item) => item.product?.manufacturer_id),
+    );
+    return manufacturers.size;
   };
 
   const calculateTotal = () => {
@@ -313,7 +373,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
                 </span>
               </div>
 
-              <Button className="w-full" size="lg">
+              <Button className="w-full" size="lg" onClick={() => setShowCheckoutDialog(true)}>
                 Proceed to Checkout
               </Button>
 
@@ -380,6 +440,87 @@ const DealerCartView = ({ initialCartItems }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Checkout Dialog */}
+      <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Checkout</DialogTitle>
+            <DialogDescription>
+              Your cart contains products from {getManufacturerCount()}{" "}
+              manufacturer(s). Separate orders will be created for each
+              manufacturer.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="shipping_address">
+                Shipping Address <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="shipping_address"
+                placeholder="Enter your shipping address"
+                value={shippingAddress}
+                onChange={(e) => setShippingAddress(e.target.value)}
+                rows={3}
+                disabled={checkoutMutation.isPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="billing_address">
+                Billing Address <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="billing_address"
+                placeholder="Enter your billing address"
+                value={billingAddress}
+                onChange={(e) => setBillingAddress(e.target.value)}
+                rows={3}
+                disabled={checkoutMutation.isPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add any special instructions or notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                disabled={checkoutMutation.isPending}
+              />
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-lg">Total Amount:</span>
+              <span className="font-semibold text-xl text-primary">
+                {formatPrice(calculateTotal())}
+              </span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCheckoutDialog(false)}
+              disabled={checkoutMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCheckout}
+              disabled={checkoutMutation.isPending}
+            >
+              Place Order {checkoutMutation.isPending && <Spinner />}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

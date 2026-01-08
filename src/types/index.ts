@@ -195,3 +195,33 @@ export interface CartItem {
 
   product?: Product;
 }
+
+export interface Order {
+  id: string;
+  dealer_id: string;
+  manufacturer_id: string;
+  order_number: string;
+  invoice_number: string;
+  status: OrderStatus;
+  payment_status: PaymentStatus;
+  total_amount: number;
+  shipping_address: string | null;
+  billing_address: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  dealer?: Dealer;
+  manufacturer?: Manufacturer;
+  order_items?: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+  created_at: string;
+  product?: Product;
+}
