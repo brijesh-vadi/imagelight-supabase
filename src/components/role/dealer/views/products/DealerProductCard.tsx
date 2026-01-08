@@ -1,20 +1,11 @@
 "use client";
 
-import { Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
-import { toast } from "sonner";
-import {
-  addToCart,
-  removeFromCart,
-  updateCartItemQuantity,
-} from "@/actions/dealer/cart.action";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
 import {
   Carousel,
   CarouselContent,
@@ -22,77 +13,18 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/widgets/EmblaCarousel";
-import { useCart } from "@/lib/react-query/hooks/useCart";
 import { formatPrice, shortenText } from "@/lib/utils";
 import type { Product } from "@/types";
+import AddToCartButton from "./AddToCartButton";
+import DealerProductActionDropdown from "./DealerProductActionDropdown";
 
 interface ProductCardProps {
   product: Product;
 }
 
 const DealerProductCard = ({ product }: ProductCardProps) => {
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const { data: cartItems, refetch } = useCart();
-
+  const router = useRouter();
   const allImages = [product.primary_image, ...(product.images ?? [])];
-
-  const cartItem = cartItems?.find((item) => item.product_id === product.id);
-  const isInCart = !!cartItem;
-  const currentQuantity = cartItem?.quantity || 0;
-
-  const handleAddToCart = async () => {
-    setIsAddingToCart(true);
-    try {
-      const result = await addToCart(product.id, 1);
-      if (result.success) {
-        toast.success(result.message);
-        refetch();
-      } else {
-        toast.error(result.message);
-      }
-    } catch (error) {
-      toast.error("Failed to add to cart");
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
-
-  const handleUpdateQuantity = async (newQuantity: number) => {
-    if (!cartItem) return;
-
-    if (newQuantity < 1) {
-      setIsUpdating(true);
-      try {
-        const result = await removeFromCart(cartItem.id);
-        if (result.success) {
-          toast.success("Removed from cart");
-          refetch();
-        } else {
-          toast.error(result.message);
-        }
-      } catch (error) {
-        toast.error("Failed to remove from cart");
-      } finally {
-        setIsUpdating(false);
-      }
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      const result = await updateCartItemQuantity(cartItem.id, newQuantity);
-      if (result.success) {
-        refetch();
-      } else {
-        toast.error(result.message);
-      }
-    } catch (error) {
-      toast.error("Failed to update quantity");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   return (
     <Card className="group overflow-hidden p-0 transition-all gap-4 h-fit">
@@ -133,16 +65,32 @@ const DealerProductCard = ({ product }: ProductCardProps) => {
           <h3 className="line-clamp-2 font-semibold text-gray-900 text-xl leading-tight">
             {shortenText(product.name, 30)}
           </h3>
-          {/*<ProductActionDropdown
-              onDetail={() =>
-                router.push(`/manufacturer/products/${product?.id}`)
-              }
-              onUpdate={() =>
-                router.push(`/manufacturer/products?update-id=${product?.id}`)
-              }
-              onDelete={() => setProductToDelete(product)}
-            />*/}
+          <DealerProductActionDropdown
+            onDetail={() => router.push(`/dealer/products/${product?.id}`)}
+          />
         </div>
+
+        {/* Manufacturer Info */}
+        {product.manufacturer && (
+          <div className="flex items-center gap-2">
+            <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border">
+              <Avatar className="h-full w-full">
+                <AvatarImage
+                  src={product.manufacturer.company_logo}
+                  alt={`${product?.manufacturer.company_name} logo`}
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-lg">
+                  {product?.manufacturer.company_name?.[0]}
+                  {product?.manufacturer.company_name?.[1]}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {product.manufacturer.company_name}
+            </span>
+          </div>
+        )}
 
         {/* Dealer Price */}
         <div className="flex items-start gap-6 bg-muted p-2 rounded-md">
@@ -170,63 +118,8 @@ const DealerProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
 
-        {/* Stock */}
-        <div className="flex items-center gap-2">
-          <Label>Stock :</Label>
-          <span className="text-muted-foreground text-sm">{product.stock}</span>
-        </div>
-
-        {/* Min.Order Quantity */}
-        <div className="flex items-center gap-2">
-          <Label>Min. order quantity :</Label>
-          <span className="text-muted-foreground text-sm">
-            {product.min_order_quantity}
-          </span>
-        </div>
-
-        {/* Category */}
-        <div className="flex items-center gap-2">
-          <Label>Category :</Label>
-          <Badge variant="secondary">
-            <span className="text-xs">{product.category?.name}</span>
-          </Badge>
-        </div>
-
-        {/* Add to Cart or Quantity Controls */}
-        {!isInCart ? (
-          <Button
-            onClick={handleAddToCart}
-            disabled={isAddingToCart}
-            className="w-fit mx-auto"
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add To Cart {isAddingToCart && <Spinner className="w-4 h-4" />}
-          </Button>
-        ) : (
-          <div className="flex items-center justify-between gap-2 bg-primary px-3 py-1 rounded-md w-1/2 mx-auto h-9">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => handleUpdateQuantity(currentQuantity - 1)}
-              disabled={isUpdating}
-              className="h-5 w-5 rounded-full"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <span className="font-semibold text-base text-white">
-              {currentQuantity}
-            </span>
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => handleUpdateQuantity(currentQuantity + 1)}
-              disabled={isUpdating}
-              className="h-5 w-5 rounded-full"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        {/* Add to Cart */}
+        <AddToCartButton productId={product.id} variant="compact" />
       </CardContent>
     </Card>
   );

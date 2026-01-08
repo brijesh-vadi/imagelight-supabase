@@ -37,6 +37,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
   const queryClient = useQueryClient();
   const [cartItems, setCartItems] = useState(initialCartItems);
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
   const updateQuantityMutation = useMutation({
     mutationFn: ({
@@ -66,15 +67,14 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     },
   });
 
-  // Mutation for removing item
   const removeItemMutation = useMutation({
     mutationFn: (cartItemId: string) => removeFromCart(cartItemId),
     onSuccess: (result, cartItemId) => {
       if (result.success) {
         setCartItems((prev) => prev.filter((item) => item.id !== cartItemId));
         toast.success(result.message);
-        // Invalidate cart query to update product cards
         queryClient.invalidateQueries({ queryKey: ["cart"] });
+        setItemToRemove(null);
         router.refresh();
       } else {
         toast.error(result.message);
@@ -82,17 +82,16 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     },
     onError: () => {
       toast.error("Failed to remove item");
+      setItemToRemove(null);
     },
   });
 
-  // Mutation for clearing cart
   const clearCartMutation = useMutation({
     mutationFn: () => clearCart(),
     onSuccess: (result) => {
       if (result.success) {
         setCartItems([]);
         toast.success(result.message);
-        // Invalidate cart query to update product cards
         queryClient.invalidateQueries({ queryKey: ["cart"] });
         setShowClearDialog(false);
         router.refresh();
@@ -110,8 +109,10 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     updateQuantityMutation.mutate({ cartItemId, quantity: newQuantity });
   };
 
-  const handleRemoveItem = (cartItemId: string) => {
-    removeItemMutation.mutate(cartItemId);
+  const handleRemoveItem = () => {
+    if (itemToRemove) {
+      removeItemMutation.mutate(itemToRemove);
+    }
   };
 
   const handleClearCart = () => {
@@ -178,10 +179,10 @@ const DealerCartView = ({ initialCartItems }: Props) => {
         <div className="lg:col-span-2 space-y-4">
           {cartItems.map((item) => (
             <Card key={item.id}>
-              <CardContent className="p-4">
+              <CardContent className="">
                 <div className="flex gap-4">
                   {/* Product Image */}
-                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border">
+                  <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border">
                     <Image
                       src={item.product.primary_image}
                       alt={item.product.name}
@@ -214,7 +215,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleRemoveItem(item.id)}
+                        onClick={() => setItemToRemove(item.id)}
                         disabled={
                           removeItemMutation.isPending ||
                           updateQuantityMutation.isPending
@@ -285,8 +286,8 @@ const DealerCartView = ({ initialCartItems }: Props) => {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
-            <CardContent className="p-6 space-y-4">
+          <Card className="sticky top-4 p-0">
+            <CardContent className="p-4 space-y-4">
               <h2 className="font-semibold text-xl">Order Summary</h2>
               <Separator />
 
@@ -328,6 +329,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
         </div>
       </div>
 
+      {/* Clear Cart Dialog */}
       <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -347,6 +349,33 @@ const DealerCartView = ({ initialCartItems }: Props) => {
               className="bg-destructive text-white hover:bg-destructive/90"
             >
               Clear Cart {clearCartMutation.isPending && <Spinner />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Remove Item Dialog */}
+      <AlertDialog
+        open={itemToRemove !== null}
+        onOpenChange={(open) => !open && setItemToRemove(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this item from your cart?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeItemMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveItem}
+              disabled={removeItemMutation.isPending}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              Remove {removeItemMutation.isPending && <Spinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

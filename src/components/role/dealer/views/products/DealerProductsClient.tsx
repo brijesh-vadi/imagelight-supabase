@@ -30,6 +30,8 @@ const DealerProductsClient = ({
     unitId,
   });
 
+  console.log("data", data);
+
   const handleSearchChange = (newSearch: string) => {
     setSearch(newSearch);
     setPage(1);

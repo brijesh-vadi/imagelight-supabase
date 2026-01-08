@@ -60,7 +60,8 @@ export async function getDealerProducts({
         `
         *,
         unit:unit(id, name),
-        category:categories(id, name)
+        category:categories(id, name),
+        manufacturer:manufacturer_id(id, company_name, company_logo)
       `,
         { count: "exact" },
       )
@@ -107,6 +108,72 @@ export async function getDealerProducts({
     };
   } catch (err) {
     console.error("Unexpected error in getDealerProducts:", err);
+    return {
+      success: false,
+      message: "Something went wrong. Please try again.",
+    };
+  }
+}
+
+
+export async function getDealerProductById(
+  productId: string
+): Promise<ApiResponse<Product>> {
+  const supabase = await createClient();
+  const session = await getSession(Role.DEALER);
+
+  if (!session?.userId) {
+    return {
+      success: false,
+      message: "Unauthorized. Please login again.",
+    };
+  }
+
+  try {
+    // First check if the dealer is approved by the manufacturer of this product
+    const { data: product, error: productError } = await supabase
+      .from("products")
+      .select(
+        `
+        *,
+        unit:unit(id, name),
+        category:categories(id, name),
+        manufacturer:manufacturer_id(id, company_name, company_logo, email, mobile, address, city, state, pincode, website, company_description)
+      `
+      )
+      .eq("id", productId)
+      .eq("is_active", true)
+      .single();
+
+    if (productError || !product) {
+      return {
+        success: false,
+        message: "Product not found.",
+      };
+    }
+
+    // Check if dealer is approved by this manufacturer
+    const { data: approval } = await supabase
+      .from("dealer_application_history")
+      .select("status")
+      .eq("dealer_id", session.userId)
+      .eq("manufacturer_id", product.manufacturer_id)
+      .eq("status", "APPROVED")
+      .maybeSingle();
+
+    if (!approval) {
+      return {
+        success: false,
+        message: "You don't have access to view this product. Please apply for dealership with this manufacturer.",
+      };
+    }
+
+    return {
+      success: true,
+      data: product,
+    };
+  } catch (err) {
+    console.error("Unexpected error in getDealerProductById:", err);
     return {
       success: false,
       message: "Something went wrong. Please try again.",

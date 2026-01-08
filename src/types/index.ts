@@ -144,6 +144,7 @@ export interface Product {
   unit_id: string;
   unit?: Pick<Unit, "id" | "name">;
   category?: Pick<Category, "id" | "name">;
+  manufacturer?: Pick<Manufacturer, "id" | "company_name" | "company_logo">;
   category_id: string;
   created_at: string;
   updated_at: string;
