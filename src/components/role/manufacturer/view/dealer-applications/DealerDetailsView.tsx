@@ -17,7 +17,6 @@ interface Props {
 
 const DealerDetailsView = ({ dealer }: Props) => {
   const currentStatus = dealer.application_status || "PENDING";
-  console.log("currentStatus", currentStatus);
   const isPending = currentStatus === "PENDING";
 
   return (

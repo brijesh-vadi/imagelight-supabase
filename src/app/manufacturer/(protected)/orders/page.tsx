@@ -1,9 +1,9 @@
 import { Package } from "lucide-react";
-import Link from "next/link";
 import { getManufacturerOrders } from "@/actions/manufacturer/order.action";
 import ManufacturerOrdersView from "@/components/role/manufacturer/view/orders/ManufacturerOrdersView";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const dynamic = "force-dynamic";
 
 export default async function ManufacturerOrdersPage() {
   const result = await getManufacturerOrders();
@@ -25,11 +25,9 @@ export default async function ManufacturerOrdersPage() {
             <Package className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-xl mb-2">No orders yet</h3>
             <p className="text-muted-foreground text-sm mb-6">
-              Start shopping to place your first order
+              Orders from dealers will be visible here dealers start placing
+              orders
             </p>
-            <Button asChild>
-              <Link href="/dealer/products">Browse Products</Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

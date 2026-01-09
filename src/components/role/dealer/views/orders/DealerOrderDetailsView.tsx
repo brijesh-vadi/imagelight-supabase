@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
-import { cancelOrder } from "@/actions/dealer/order.action";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cancelOrder, cancelOrderItem } from "@/actions/dealer/order.action";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,13 +15,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import BackButton from "@/components/widgets/BackButton";
 import { formatDate, formatPrice } from "@/lib/utils";
 import type { Order, OrderStatus, PaymentStatus } from "@/types";
+import DealerOrderItemActionDropdown from "./DealerOrderItemActionDropdown";
 
 interface Props {
   order: Order;
@@ -68,21 +70,42 @@ const getPaymentStatusColor = (status: PaymentStatus) => {
 const DealerOrderDetailsView = ({ order }: Props) => {
   const router = useRouter();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const handleCancelOrder = async () => {
+  const handleCancelOrder = () => {
+    setSelectedItemId(null); // Clear item ID to indicate full order cancellation
+    setShowCancelDialog(true);
+  };
+
+  const handleCancelItem = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setShowCancelDialog(true);
+  };
+
+  const confirmCancel = async () => {
     setIsCancelling(true);
     try {
-      const result = await cancelOrder(order.id);
+      let result;
+
+      if (selectedItemId) {
+        // Cancel individual item
+        result = await cancelOrderItem(selectedItemId);
+      } else {
+        // Cancel entire order
+        result = await cancelOrder(order.id);
+      }
+
       if (result.success) {
         toast.success(result.message);
         setShowCancelDialog(false);
+        setSelectedItemId(null);
         router.refresh();
       } else {
         toast.error(result.message);
       }
     } catch (error) {
-      toast.error("Failed to cancel order");
+      toast.error("Failed to cancel");
     } finally {
       setIsCancelling(false);
     }
@@ -93,28 +116,20 @@ const DealerOrderDetailsView = ({ order }: Props) => {
       {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/dealer/orders")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <BackButton />
           <div>
             <h1 className="font-semibold text-2xl text-primary">
               Order Details
             </h1>
             <p className="text-muted-foreground text-sm">
-              Order #{order.order_number}
+              Review order information placed by the you, including items,
+              quantities, and status
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {order.status === "PENDING" && (
-            <Button
-              variant="destructive"
-              onClick={() => setShowCancelDialog(true)}
-            >
+            <Button variant="destructive" onClick={handleCancelOrder}>
               Cancel Order
             </Button>
           )}
@@ -125,28 +140,50 @@ const DealerOrderDetailsView = ({ order }: Props) => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Order Info */}
-          <Card>
-            <CardHeader>
+          <Card className="p-0 gap-0 overflow-hidden">
+            <CardHeader className="p-4 bg-secondary text-center gap-0">
               <CardTitle>Order Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Order Number</p>
-                  <p className="font-semibold">{order.order_number}</p>
+                  <Label className="text-muted-foreground font-normal">
+                    Order Number
+                  </Label>
+                  <p className="font-medium">{order.order_number}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Invoice Number</p>
-                  <p className="font-semibold">{order.invoice_number}</p>
+                  <Label className="text-muted-foreground font-normal">
+                    Invoice Number
+                  </Label>
+                  <p className="font-medium">{order.order_number}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Order Date</p>
-                  <p className="font-semibold">{formatDate(order.created_at)}</p>
+                  <Label className="text-muted-foreground font-normal">
+                    Order Date
+                  </Label>
+                  <p className="font-medium">{formatDate(order.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Updated</p>
-                  <p className="font-semibold">{formatDate(order.updated_at)}</p>
+                  <Label className="text-muted-foreground font-normal">
+                    Last Updated
+                  </Label>
+                  <p className="font-medium">{formatDate(order.updated_at)}</p>
                 </div>
+              </div>
+
+              <Separator />
+
+              <div className="w-full space-y-1">
+                <Label className="text-muted-foreground font-normal">
+                  Shipping Address
+                </Label>
+                <p className="font-medium">{order.shipping_address}</p>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Order Status</p>
                   <Badge className={getOrderStatusColor(order.status)}>
@@ -154,8 +191,12 @@ const DealerOrderDetailsView = ({ order }: Props) => {
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Payment Status</p>
-                  <Badge className={getPaymentStatusColor(order.payment_status)}>
+                  <p className="text-sm text-muted-foreground">
+                    Payment Status
+                  </p>
+                  <Badge
+                    className={getPaymentStatusColor(order.payment_status)}
+                  >
                     {order.payment_status}
                   </Badge>
                 </div>
@@ -164,47 +205,84 @@ const DealerOrderDetailsView = ({ order }: Props) => {
           </Card>
 
           {/* Order Items */}
-          <Card>
-            <CardHeader>
+          <Card className="p-0 gap-0 overflow-hidden">
+            <CardHeader className="p-4 bg-secondary text-center gap-0">
               <CardTitle>Order Items</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
               <div className="space-y-4">
                 {order.order_items?.map((item) => (
                   <div key={item.id}>
-                    <div className="flex gap-4">
+                    <div
+                      className={`flex items-center gap-4 ${item.status === "CANCELLED" ? "opacity-60" : ""}`}
+                    >
                       {item.product && (
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded border">
                           <Image
                             src={item.product.primary_image}
                             alt={item.product.name}
                             fill
+                            sizes="80px"
                             className="object-cover"
                           />
                         </div>
                       )}
                       <div className="flex-1">
-                        <h3 className="font-semibold">
-                          {item.product?.name || "Product"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          SKU: {item.product?.sku}
-                        </p>
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-sm">
-                            Quantity: <span className="font-medium">{item.quantity}</span>
-                          </span>
-                          <span className="text-sm">
-                            Price: <span className="font-medium">{formatPrice(item.price)}</span>
-                          </span>
-                          <span className="text-sm">
-                            Subtotal:{" "}
-                            <span className="font-semibold text-primary">
-                              {formatPrice(item.subtotal)}
-                            </span>
-                          </span>
+                        <div className="flex items-start justify-between">
+                          <div className="w-full">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">
+                                {item.product?.name || "Product"}
+                              </h3>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              SKU: {item.product?.sku}
+                            </p>
+                            <div className="flex items-center gap-4 mt-2">
+                              <span className="text-sm">
+                                Quantity:{" "}
+                                <span className="font-medium">
+                                  {item.quantity}
+                                </span>
+                              </span>
+                              <span className="text-sm">
+                                Price:{" "}
+                                <span className="font-medium">
+                                  {formatPrice(item.price)}
+                                </span>
+                              </span>
+                              <span className="text-sm">
+                                Subtotal:{" "}
+                                <span
+                                  className={`font-semibold text-primary ${item.status === "CANCELLED" ? "line-through" : ""}`}
+                                >
+                                  {formatPrice(item.subtotal)}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                          {item.status !== "CANCELLED" &&
+                            order.status !== "CANCELLED" &&
+                            order.status !== "DELIVERED" &&
+                            order.status !== "REJECTED" && (
+                              <DealerOrderItemActionDropdown
+                                onCancel={() => handleCancelItem(item.id)}
+                                onDetail={() =>
+                                  router.push(
+                                    `/dealer/products/${item.product?.id}`,
+                                  )
+                                }
+                              />
+                            )}
                         </div>
                       </div>
+                      {item.status === "CANCELLED" && (
+                        <Badge variant="destructive" className="text-xs">
+                          {item.cancelled_by === "MANUFACTURER"
+                            ? `Cancelled By ${order.manufacturer?.company_name}`
+                            : "Cancelled By You"}
+                        </Badge>
+                      )}
                     </div>
                     <Separator className="mt-4" />
                   </div>
@@ -213,53 +291,32 @@ const DealerOrderDetailsView = ({ order }: Props) => {
             </CardContent>
           </Card>
 
-          {/* Addresses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-line">
-                  {order.shipping_address || "N/A"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-line">
-                  {order.billing_address || "N/A"}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Notes */}
-          {order.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card className="p-0 gap-0  overflow-hidden">
+            <CardHeader className="p-4 bg-secondary text-center gap-0">
+              <CardTitle>Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {order.notes ? (
                 <p className="text-sm whitespace-pre-line">{order.notes}</p>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-sm whitespace-pre-line text-muted-foreground mx-auto w-fit">
+                  No notes added by you
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           {/* Manufacturer Info */}
           {order.manufacturer && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Manufacturer</CardTitle>
+            <Card className="p-0 gap-0  overflow-hidden">
+              <CardHeader className="p-4 bg-secondary text-center gap-0">
+                <CardTitle>Manufacturer Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
@@ -279,34 +336,39 @@ const DealerOrderDetailsView = ({ order }: Props) => {
                 </div>
                 <Separator />
                 <div className="space-y-2 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Email</p>
-                    <p>{order.manufacturer.email}</p>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground">Email</Label>
+                    <p className="font-medium">{order.manufacturer.email}</p>
                   </div>
-                  <div>
-                    <p className="text-muted-foreground">Mobile</p>
-                    <p>{order.manufacturer.mobile}</p>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground">Mobile</Label>
+                    <p className="font-medium">{order.manufacturer.email}</p>
                   </div>
-                  {order.manufacturer.address && (
-                    <div>
-                      <p className="text-muted-foreground">Address</p>
-                      <p>
-                        {order.manufacturer.address}, {order.manufacturer.city},{" "}
-                        {order.manufacturer.state} - {order.manufacturer.pincode}
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground">GST Number</Label>
+                    <p className="font-medium">
+                      {order.manufacturer.gst_number}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground">City</Label>
+                    <p className="font-medium">{order.manufacturer.city}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground">State</Label>
+                    <p className="font-medium">{order.manufacturer.state}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
           {/* Order Summary */}
-          <Card>
-            <CardHeader>
+          <Card className="p-0 gap-0  overflow-hidden">
+            <CardHeader className="p-4 bg-secondary text-center gap-0">
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Items</span>
@@ -327,20 +389,25 @@ const DealerOrderDetailsView = ({ order }: Props) => {
         </div>
       </div>
 
-      {/* Cancel Order Dialog */}
+      {/* Cancel Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {selectedItemId ? "Cancel Order Item?" : "Cancel Order?"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel this order? This action cannot be
-              undone.
+              {selectedItemId
+                ? "Are you sure you want to cancel this item? The order total will be recalculated. If this is the last item, the entire order will be cancelled."
+                : "Are you sure you want to cancel this order? This action cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isCancelling}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isCancelling}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleCancelOrder}
+              onClick={confirmCancel}
               disabled={isCancelling}
               className="bg-destructive text-white hover:bg-destructive/90"
             >

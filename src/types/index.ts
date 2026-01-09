@@ -222,6 +222,8 @@ export interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  status?: "ACTIVE" | "CANCELLED";
+  cancelled_by?: "DEALER" | "MANUFACTURER";
   created_at: string;
   product?: Product;
 }

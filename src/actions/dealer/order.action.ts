@@ -82,18 +82,11 @@ export async function createOrdersFromCart(
     const supabase = await createClient();
     const session = await getSession(Role.DEALER);
 
-    if (!session?.userId) {
-      return {
-        success: false,
-        message: "Unauthorized. Please login again.",
-      };
-    }
-
     // Get dealer info
     const { data: dealer, error: dealerError } = await supabase
       .from("dealers")
       .select("id")
-      .eq("id", session.userId)
+      .eq("id", session?.userId)
       .single();
 
     if (dealerError || !dealer) {
@@ -263,6 +256,7 @@ export async function getDealerOrders(): Promise<
     const session = await getSession(Role.DEALER);
 
     if (!session?.userId) {
+      console.error("No session found");
       return {
         success: false,
         message: "Unauthorized. Please login again.",
@@ -276,8 +270,11 @@ export async function getDealerOrders(): Promise<
       .single();
 
     if (dealerError || !dealer) {
+      console.error("Dealer not found:", dealerError);
       return { success: false, message: "Dealer not found" };
     }
+
+    console.log("Fetching orders for dealer:", dealer.id);
 
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
@@ -294,6 +291,8 @@ export async function getDealerOrders(): Promise<
           quantity,
           price,
           subtotal,
+          status,
+          cancelled_by,
           product:products (
             id,
             name,
@@ -308,8 +307,11 @@ export async function getDealerOrders(): Promise<
       .order("created_at", { ascending: false });
 
     if (ordersError) {
+      console.error("Failed to fetch orders:", ordersError);
       return { success: false, message: "Failed to fetch orders" };
     }
+
+    console.log("Orders fetched successfully:", orders?.length || 0);
 
     return { success: true, data: { orders: orders || [] } };
   } catch (error) {
@@ -359,6 +361,7 @@ export async function getDealerOrderById(
           address,
           city,
           state,
+          gst_number,
           pincode
         ),
         order_items:order_items (
@@ -366,6 +369,8 @@ export async function getDealerOrderById(
           quantity,
           price,
           subtotal,
+          status,
+          cancelled_by,
           created_at,
           product:products (
             id,
@@ -461,5 +466,143 @@ export async function cancelOrder(
   } catch (error) {
     console.error("Cancel order error:", error);
     return { success: false, message: "Failed to cancel order" };
+  }
+}
+
+export async function cancelOrderItem(
+  orderItemId: string,
+): Promise<ApiResponse<{ order: Order }>> {
+  try {
+    const supabase = await createClient();
+    const session = await getSession(Role.DEALER);
+
+    const { data: dealer, error: dealerError } = await supabase
+      .from("dealers")
+      .select("id")
+      .eq("id", session?.userId)
+      .single();
+
+    if (dealerError || !dealer) {
+      return { success: false, message: "Dealer not found" };
+    }
+
+    const { data: orderItem, error: itemError } = await supabase
+      .from("order_items")
+      .select(
+        `
+        id,
+        order_id,
+        quantity,
+        price,
+        subtotal,
+        status,
+        order:orders!inner (
+          id,
+          dealer_id,
+          status,
+          total_amount
+        )
+      `,
+      )
+      .eq("id", orderItemId)
+      .single();
+
+    if (itemError || !orderItem) {
+      return { success: false, message: "Order item not found" };
+    }
+
+    // @ts-expect-error - Supabase nested select types
+    if (orderItem.order.dealer_id !== dealer.id) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    // @ts-expect-error - Supabase nested select types
+    if (orderItem.order.status !== "PENDING") {
+      return {
+        success: false,
+        message: "Only pending orders can be cancelled",
+      };
+    }
+
+    if (orderItem.status === "CANCELLED") {
+      return {
+        success: false,
+        message: "Order item is already cancelled",
+      };
+    }
+
+    // Mark the order item as cancelled instead of deleting
+    const { error: updateError } = await supabase
+      .from("order_items")
+      .update({ status: "CANCELLED", cancelled_by: "DEALER" })
+      .eq("id", orderItemId);
+
+    if (updateError) {
+      return { success: false, message: "Failed to cancel order item" };
+    }
+
+    // Check remaining active items in the order
+    const { data: remainingItems, error: remainingError } = await supabase
+      .from("order_items")
+      .select("id, subtotal, status")
+      .eq("order_id", orderItem.order_id);
+
+    if (remainingError) {
+      return { success: false, message: "Failed to check remaining items" };
+    }
+
+    // Filter only active items
+    const activeItems = remainingItems?.filter(
+      (item) => item.status !== "CANCELLED",
+    );
+
+    // If no active items left, cancel the entire order
+    if (!activeItems || activeItems.length === 0) {
+      const { error: cancelOrderError } = await supabase
+        .from("orders")
+        .update({ status: "CANCELLED", total_amount: 0 })
+        .eq("id", orderItem.order_id);
+
+      if (cancelOrderError) {
+        console.error("Failed to cancel empty order:", cancelOrderError);
+      }
+    } else {
+      // Recalculate order total based on active items only
+      const newTotal = activeItems.reduce(
+        (sum, item) => sum + Number(item.subtotal),
+        0,
+      );
+
+      const { error: updateTotalError } = await supabase
+        .from("orders")
+        .update({ total_amount: newTotal })
+        .eq("id", orderItem.order_id);
+
+      if (updateTotalError) {
+        console.error("Failed to update order total:", updateTotalError);
+      }
+    }
+
+    const { data: updatedOrder, error: fetchError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderItem.order_id)
+      .single();
+
+    if (fetchError || !updatedOrder) {
+      return { success: false, message: "Failed to fetch updated order" };
+    }
+
+    revalidatePath("/dealer/orders");
+    revalidatePath(`/dealer/orders/${orderItem.order_id}`);
+
+    return {
+      success: true,
+      message: "Order item cancelled successfully",
+      data: { order: updatedOrder },
+    };
+  } catch (error) {
+    console.error("Cancel order item error:", error);
+    return { success: false, message: "Failed to cancel order item" };
   }
 }
