@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  acceptOrder,
   cancelManufacturerOrder,
   cancelManufacturerOrderItem,
   updateOrderStatus,
@@ -36,12 +37,31 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import BackButton from "@/components/widgets/BackButton";
 import { formatDate, formatPrice } from "@/lib/utils";
-import type { Order } from "@/types";
+import type { Order, OrderStatus } from "@/types";
 import ManufacturerOrderItemActionDropdown from "./ManufacturerOrderItemActionDropdown";
 
 interface Props {
   order: Order;
 }
+
+const getOrderStatusColor = (status: OrderStatus) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-500";
+    case "PROCESSING":
+      return "bg-blue-500";
+    case "SHIPPED":
+      return "bg-purple-500";
+    case "DELIVERED":
+      return "bg-green-500";
+    case "CANCELLED":
+      return "bg-gray-500";
+    case "REJECTED":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
 
 const ManufacturerOrderDetailsView = ({ order }: Props) => {
   const router = useRouter();
@@ -50,6 +70,30 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [showAcceptDialog, setShowAcceptDialog] = useState(false);
+
+  const handleAcceptOrder = () => {
+    setShowAcceptDialog(true);
+  };
+
+  const confirmAcceptOrder = async () => {
+    setIsAccepting(true);
+    try {
+      const result = await acceptOrder(order.id);
+      if (result.success) {
+        toast.success(result.message);
+        setShowAcceptDialog(false);
+        router.refresh();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error("Failed to accept order");
+    } finally {
+      setIsAccepting(false);
+    }
+  };
 
   const handleUpdateOrderStatus = async (status: string) => {
     setIsUpdatingStatus(true);
@@ -138,6 +182,15 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {order.status === "PENDING" ? (
+            <Button variant="default" onClick={handleAcceptOrder}>
+              Accept Order
+            </Button>
+          ) : (
+            <Badge className={getOrderStatusColor(order.status)}>
+              {order.status}
+            </Badge>
+          )}
           {order.status !== "CANCELLED" &&
             order.status !== "DELIVERED" &&
             order.status !== "REJECTED" && (
@@ -206,6 +259,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                       value={order.status}
                       onValueChange={handleUpdateOrderStatus}
                       disabled={
+                        order.status === "PENDING" ||
                         isUpdatingStatus ||
                         order.status === "CANCELLED" ||
                         order.status === "REJECTED" ||
@@ -216,18 +270,13 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="PENDING">PENDING</SelectItem>
                         <SelectItem value="PROCESSING">PROCESSING</SelectItem>
                         <SelectItem value="SHIPPED">SHIPPED</SelectItem>
                         <SelectItem value="DELIVERED">DELIVERED</SelectItem>
-                        <SelectItem value="REJECTED">REJECTED</SelectItem>
                       </SelectContent>
                     </Select>
                     {isUpdatingStatus && <Spinner className="w-4 h-4" />}
                   </div>
-                  {/*<Badge className={getOrderStatusColor(order.status)}>
-                    {order.status}
-                  </Badge>*/}
                 </div>
 
                 <div className="space-y-2">
@@ -239,6 +288,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                       value={order.payment_status}
                       onValueChange={handleUpdatePaymentStatus}
                       disabled={
+                        order.status === "PENDING" ||
                         isUpdatingPayment ||
                         order.status === "CANCELLED" ||
                         order.status === "REJECTED" ||
@@ -259,11 +309,6 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                     </Select>
                     {isUpdatingPayment && <Spinner className="w-4 h-4" />}
                   </div>
-                  {/*<Badge
-                    className={getPaymentStatusColor(order.payment_status)}
-                  >
-                    {order.payment_status}
-                  </Badge>*/}
                 </div>
               </div>
             </CardContent>
@@ -276,7 +321,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
-                {order.order_items?.map((item) => (
+                {order.order_items?.map((item, index) => (
                   <div key={item.id}>
                     <div
                       className={`flex items-center gap-4 ${item.status === "CANCELLED" ? "opacity-60" : ""}`}
@@ -327,6 +372,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                             </div>
                           </div>
                           {item.status !== "CANCELLED" &&
+                            order.status !== "PENDING" &&
                             order.status !== "CANCELLED" &&
                             order.status !== "DELIVERED" &&
                             order.status !== "REJECTED" && (
@@ -349,7 +395,9 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
                         </Badge>
                       )}
                     </div>
-                    <Separator className="mt-4" />
+                    {index < (order.order_items?.length || 0) - 1 && (
+                      <Separator className="mt-4" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -359,7 +407,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
           {/* Notes */}
           <Card className="p-0 gap-0  overflow-hidden">
             <CardHeader className="p-4 bg-secondary text-center gap-0">
-              <CardTitle>Notes</CardTitle>
+              <CardTitle>Notes From {order.dealer?.company_name}</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               {order.notes ? (
@@ -452,6 +500,28 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
         </div>
       </div>
 
+      {/* Accept Order Dialog */}
+      <AlertDialog open={showAcceptDialog} onOpenChange={setShowAcceptDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accept Order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Once accepted, you will be able to update order status, payment
+              status, and cancel individual items if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isAccepting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAcceptOrder}
+              disabled={isAccepting}
+            >
+              Accept Order {isAccepting && <Spinner className="w-4 h-4" />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Cancel Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
@@ -474,7 +544,7 @@ const ManufacturerOrderDetailsView = ({ order }: Props) => {
               disabled={isCancelling}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              Confirm {isCancelling && <Spinner />}
+              Confirm {isCancelling && <Spinner className="w-4 h-4" />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

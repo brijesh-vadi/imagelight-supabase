@@ -74,7 +74,7 @@ const DealerOrderDetailsView = ({ order }: Props) => {
   const [isCancelling, setIsCancelling] = useState(false);
 
   const handleCancelOrder = () => {
-    setSelectedItemId(null); // Clear item ID to indicate full order cancellation
+    setSelectedItemId(null);
     setShowCancelDialog(true);
   };
 
@@ -211,7 +211,7 @@ const DealerOrderDetailsView = ({ order }: Props) => {
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
-                {order.order_items?.map((item) => (
+                {order.order_items?.map((item, index) => (
                   <div key={item.id}>
                     <div
                       className={`flex items-center gap-4 ${item.status === "CANCELLED" ? "opacity-60" : ""}`}
@@ -284,7 +284,9 @@ const DealerOrderDetailsView = ({ order }: Props) => {
                         </Badge>
                       )}
                     </div>
-                    <Separator className="mt-4" />
+                    {index < (order.order_items?.length || 0) - 1 && (
+                      <Separator className="mt-4" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -294,7 +296,7 @@ const DealerOrderDetailsView = ({ order }: Props) => {
           {/* Notes */}
           <Card className="p-0 gap-0  overflow-hidden">
             <CardHeader className="p-4 bg-secondary text-center gap-0">
-              <CardTitle>Notes</CardTitle>
+              <CardTitle>Notes To {order.manufacturer?.company_name}</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               {order.notes ? (

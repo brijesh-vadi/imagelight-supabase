@@ -243,6 +243,7 @@ const ManufacturerOrdersView = ({ orders }: Props) => {
                             </h4>
                           </div>
                           {item.status !== "CANCELLED" &&
+                            order.status !== "PENDING" &&
                             order.status !== "CANCELLED" &&
                             order.status !== "DELIVERED" &&
                             order.status !== "REJECTED" && (

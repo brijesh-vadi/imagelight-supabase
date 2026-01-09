@@ -373,7 +373,11 @@ const DealerCartView = ({ initialCartItems }: Props) => {
                 </span>
               </div>
 
-              <Button className="w-full" size="lg" onClick={() => setShowCheckoutDialog(true)}>
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => setShowCheckoutDialog(true)}
+              >
                 Proceed to Checkout
               </Button>
 
@@ -516,7 +520,8 @@ const DealerCartView = ({ initialCartItems }: Props) => {
               onClick={handleCheckout}
               disabled={checkoutMutation.isPending}
             >
-              Place Order {checkoutMutation.isPending && <Spinner />}
+              Place Order{" "}
+              {checkoutMutation.isPending && <Spinner className="w-4 h-4" />}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -286,6 +286,84 @@ export async function updatePaymentStatus(
 }
 
 /**
+ * Accept order (manufacturer accepts the order)
+ */
+export async function acceptOrder(
+  orderId: string,
+): Promise<ApiResponse<{ order: Order }>> {
+  try {
+    const supabase = await createClient();
+    const session = await getSession(Role.MANUFACTURER);
+
+    if (!session?.userId) {
+      return {
+        success: false,
+        message: "Unauthorized. Please login again.",
+      };
+    }
+
+    const { data: manufacturer, error: manufacturerError } = await supabase
+      .from("manufacturer")
+      .select("id")
+      .eq("id", session.userId)
+      .single();
+
+    console.log("Manufacturer lookup:", { manufacturer, manufacturerError });
+
+    if (manufacturerError || !manufacturer) {
+      return { success: false, message: "Manufacturer not found" };
+    }
+
+    // Check if order exists and belongs to manufacturer
+    const { data: existingOrder, error: checkError } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("id", orderId)
+      .eq("manufacturer_id", manufacturer.id)
+      .single();
+
+    console.log("checkError", checkError);
+    console.log("existingOrder", existingOrder);
+
+    if (checkError || !existingOrder) {
+      console.log("Order not found - orderId:", orderId, "manufacturer_id:", manufacturer.id);
+      return { success: false, message: "Order not found" };
+    }
+
+    if (existingOrder.status !== "PENDING") {
+      return {
+        success: false,
+        message: "Only pending orders can be accepted",
+      };
+    }
+
+    // Update order status to PROCESSING (accepting the order)
+    const { data: order, error: updateError } = await supabase
+      .from("orders")
+      .update({ status: "PROCESSING" })
+      .eq("id", orderId)
+      .select()
+      .single();
+
+    if (updateError || !order) {
+      return { success: false, message: "Failed to accept order" };
+    }
+
+    revalidatePath("/manufacturer/orders");
+    revalidatePath(`/manufacturer/orders/${orderId}`);
+
+    return {
+      success: true,
+      message: "Order accepted successfully",
+      data: { order },
+    };
+  } catch (error) {
+    console.error("Accept order error:", error);
+    return { success: false, message: "Failed to accept order" };
+  }
+}
+
+/**
  * Cancel order (manufacturer can cancel/reject orders)
  */
 export async function cancelManufacturerOrder(
@@ -420,6 +498,15 @@ export async function cancelManufacturerOrderItem(
 
     // @ts-expect-error - Supabase nested select types
     const orderStatus = orderItem.order.status;
+    
+    // Order must not be PENDING (must be accepted/processing first)
+    if (orderStatus === "PENDING") {
+      return {
+        success: false,
+        message: "Order must be accepted before cancelling items",
+      };
+    }
+
     if (
       orderStatus === "CANCELLED" ||
       orderStatus === "DELIVERED" ||
