@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, LayoutDashboard, LogOut } from "lucide-react";
+import { FileText, Layers, LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,6 +19,11 @@ const navItems = [
     label: "Applications",
     href: "/admin/applications",
     icon: FileText,
+  },
+  {
+    label: "Categories",
+    href: "/admin/categories",
+    icon: Layers,
   },
 ];
 

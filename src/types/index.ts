@@ -99,6 +99,29 @@ export interface Unit {
   product_count?: number;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  parent_id?: string | null;
+  level: number;
+  category_type: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  
+  // Relations
+  parent?: Category;
+  children?: Category[];
+  product_count?: number;
+}
+
+export interface CategoryTree extends Category {
+  children: CategoryTree[];
+}
+
 export interface ApplicationHistoryEntry {
   id?: string;
   status: ApplicationStatus;

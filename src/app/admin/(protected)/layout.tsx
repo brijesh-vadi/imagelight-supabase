@@ -15,7 +15,7 @@ export default async function AdminPanelLayout({
   }
 
   return (
-    <div className="flex h-full overflow-hidden bg-background text-foreground">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
       <AdminSidebar />
 

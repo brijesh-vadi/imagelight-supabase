@@ -15,9 +15,7 @@ export default async function ManufacturerLayout({
     redirect("/manufacturer/sign-in");
   }
 
-  const { data: manufacturer } = await getManufacturerProfile(
-    session.userId,
-  );
+  const { data: manufacturer } = await getManufacturerProfile(session.userId);
 
   return (
     <div className="h-screen overflow-hidden">

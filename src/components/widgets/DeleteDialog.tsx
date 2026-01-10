@@ -54,7 +54,7 @@ export const DeleteDialog = ({
             disabled={isDeleting}
           >
             <span>Delete</span>
-            {isDeleting && <Spinner />}
+            {isDeleting && <Spinner className="w-4 h-4" />}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
