@@ -2,6 +2,8 @@ import { getAdminCategories } from "@/actions/admin/category.action";
 import AdminAddCategoryModal from "@/components/role/admin/view/categories/AdminAddCategoryModal";
 import AdminCategoriesView from "@/components/role/admin/view/categories/AdminCategoriesView";
 
+export const dynamic = "force-dynamic";
+
 const AdminCategoriesPage = async () => {
   const { data: categories } = await getAdminCategories();
 

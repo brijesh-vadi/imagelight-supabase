@@ -1,13 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getCategories } from "@/actions/manufacturer/category.action";
+import { getAdminCategories } from "@/actions/admin/category.action";
 
 export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const result = await getCategories();
+      const result = await getAdminCategories();
       if (!result.success) {
         throw new Error(result.message || "Failed to fetch categories");
       }

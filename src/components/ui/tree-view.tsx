@@ -489,7 +489,7 @@ TreeLeaf.displayName = "TreeLeaf";
 
 const AccordionTrigger = React.forwardRef<
   HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Header>
     <AccordionPrimitive.Trigger asChild>

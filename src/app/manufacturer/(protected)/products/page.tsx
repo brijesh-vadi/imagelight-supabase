@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCategories } from "@/actions/manufacturer/category.action";
+import { getAdminCategories } from "@/actions/admin/category.action";
 import { getManufacturerProductById } from "@/actions/manufacturer/product.action";
 import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddProductForm from "@/components/role/manufacturer/view/products/ManufacturerAddProductForm";
@@ -31,7 +31,7 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
   if (isAddMode || updateId) {
     const [units, categories] = await Promise.all([
       getUnits(),
-      getCategories(),
+      getAdminCategories(),
     ]);
 
     let product = null;
