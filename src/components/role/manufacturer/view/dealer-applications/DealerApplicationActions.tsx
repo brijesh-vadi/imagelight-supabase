@@ -59,7 +59,6 @@ const DealerApplicationActions = ({
     setLoadingAction("START_REVIEW");
     try {
       const result = await startDealerReview(dealerId);
-      console.log("result start review", result);
       if (result.success) {
         toast.success(result.message);
         onStatusChange?.("IN_REVIEW");

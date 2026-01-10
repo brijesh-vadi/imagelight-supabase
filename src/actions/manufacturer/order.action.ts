@@ -308,8 +308,6 @@ export async function acceptOrder(
       .eq("id", session.userId)
       .single();
 
-    console.log("Manufacturer lookup:", { manufacturer, manufacturerError });
-
     if (manufacturerError || !manufacturer) {
       return { success: false, message: "Manufacturer not found" };
     }
@@ -322,11 +320,7 @@ export async function acceptOrder(
       .eq("manufacturer_id", manufacturer.id)
       .single();
 
-    console.log("checkError", checkError);
-    console.log("existingOrder", existingOrder);
-
     if (checkError || !existingOrder) {
-      console.log("Order not found - orderId:", orderId, "manufacturer_id:", manufacturer.id);
       return { success: false, message: "Order not found" };
     }
 
@@ -498,7 +492,7 @@ export async function cancelManufacturerOrderItem(
 
     // @ts-expect-error - Supabase nested select types
     const orderStatus = orderItem.order.status;
-    
+
     // Order must not be PENDING (must be accepted/processing first)
     if (orderStatus === "PENDING") {
       return {

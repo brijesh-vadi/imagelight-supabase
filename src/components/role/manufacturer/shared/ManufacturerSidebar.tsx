@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Layers,
   LayoutDashboard,
   LogOut,
   Package,
@@ -33,11 +32,6 @@ const navItems = [
     label: "Units",
     href: "/manufacturer/units",
     icon: Box,
-  },
-  {
-    label: "Categories",
-    href: "/manufacturer/categories",
-    icon: Layers,
   },
   {
     label: "Products",

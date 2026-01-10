@@ -1,4 +1,5 @@
 "use client";
+import { Package } from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -36,18 +37,11 @@ const ManufacturerProductsListView = ({
   return (
     <div className="flex min-h-[calc(100vh-7.8rem)] flex-col">
       <div className="flex-1 pb-6">
-        {/* Products Grid */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <ManufacturerProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            No products found
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <ManufacturerProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </div>
       {totalPages > 1 && (
         <Pagination>

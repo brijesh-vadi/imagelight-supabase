@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getAdminCategories } from "@/actions/admin/category.action";
+import { getParentCategories } from "@/actions/manufacturer/category.action";
 import { getManufacturerProductById } from "@/actions/manufacturer/product.action";
 import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddProductForm from "@/components/role/manufacturer/view/products/ManufacturerAddProductForm";
@@ -29,8 +30,9 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
   const updateId = params["update-id"];
 
   if (isAddMode || updateId) {
-    const [units, categories] = await Promise.all([
+    const [units, parentCategories, allCategories] = await Promise.all([
       getUnits(),
+      getParentCategories(),
       getAdminCategories(),
     ]);
 
@@ -59,14 +61,14 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
         </div>
         {isAddMode && (
           <ManufacturerAddProductForm
-            categories={categories?.data ?? []}
+            parentCategories={parentCategories?.data?.categories ?? []}
             units={units?.data ?? []}
           />
         )}
         {updateId && (
           <ManufacturerUpdateProductForm
             product={product!}
-            categories={categories?.data ?? []}
+            categories={allCategories?.data ?? []}
             units={units?.data ?? []}
           />
         )}

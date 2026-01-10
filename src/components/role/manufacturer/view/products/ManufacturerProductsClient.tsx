@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -70,17 +70,31 @@ export default function ManufacturerProductsClient({
         </Button>
       </div>
 
+      {data?.products.length === 0 && (
+        <div className="flex items-center justify-center py-22">
+          <div className="flex flex-col  mx-auto text-center">
+            <Package className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
+            <h3 className="font-semibold text-xl mb-2">No products added</h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              Start adding product to recieve your first order
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Search and Filters */}
-      <ProductFilters
-        search={search}
-        categoryId={categoryId}
-        unitId={unitId}
-        isActive={isActive}
-        onSearchChange={handleSearchChange}
-        onCategoryChange={handleCategoryChange}
-        onUnitChange={handleUnitChange}
-        onIsActiveChange={handleIsActiveChange}
-      />
+      {data?.products && data.products.length > 0 && (
+        <ProductFilters
+          search={search}
+          categoryId={categoryId}
+          unitId={unitId}
+          isActive={isActive}
+          onSearchChange={handleSearchChange}
+          onCategoryChange={handleCategoryChange}
+          onUnitChange={handleUnitChange}
+          onIsActiveChange={handleIsActiveChange}
+        />
+      )}
 
       {/* Loading State */}
       {isLoading && (

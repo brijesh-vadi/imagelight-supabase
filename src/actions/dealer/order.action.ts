@@ -274,8 +274,6 @@ export async function getDealerOrders(): Promise<
       return { success: false, message: "Dealer not found" };
     }
 
-    console.log("Fetching orders for dealer:", dealer.id);
-
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
       .select(
@@ -310,8 +308,6 @@ export async function getDealerOrders(): Promise<
       console.error("Failed to fetch orders:", ordersError);
       return { success: false, message: "Failed to fetch orders" };
     }
-
-    console.log("Orders fetched successfully:", orders?.length || 0);
 
     return { success: true, data: { orders: orders || [] } };
   } catch (error) {

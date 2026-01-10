@@ -32,7 +32,6 @@ const AdminSignInForm = () => {
 
     try {
       const result = await signInAdmin(data);
-      console.log("result", result);
 
       if (!result.success) {
         toast.error(result.message || "Something went wrong");

@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { getChildCategories } from "@/actions/manufacturer/category.action";
 import { addProduct } from "@/actions/manufacturer/product.action";
 import {
   AlertDialog,
@@ -36,18 +37,21 @@ import {
 import type { Category, Unit } from "@/types";
 
 interface Props {
-  categories: Category[];
+  parentCategories: Category[];
   units: Unit[];
 }
 
 const MAX_SECONDARY_IMAGES = 4;
 
-const ManufacturerAddProductForm = ({ categories, units }: Props) => {
+const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [secondaryImages, setSecondaryImages] = useState<
     (FileWithPreview | null)[]
   >([null]);
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
+  const [childCategories, setChildCategories] = useState<Category[]>([]);
+  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   const {
     register,
@@ -74,6 +78,32 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
   const unitId = watch("unitId");
   const primaryImage = watch("primaryImage");
 
+  useEffect(() => {
+    const loadChildCategories = async () => {
+      if (!selectedParentId) {
+        setChildCategories([]);
+        return;
+      }
+
+      setIsLoadingChildren(true);
+      const response = await getChildCategories(selectedParentId);
+      if (response.success && response.data) {
+        setChildCategories(response.data.categories);
+      } else {
+        toast.error("Failed to load child categories");
+        setChildCategories([]);
+      }
+      setIsLoadingChildren(false);
+    };
+
+    loadChildCategories();
+  }, [selectedParentId]);
+
+  const handleParentCategoryChange = (value: string) => {
+    setSelectedParentId(value);
+    setValue("categoryId", "", { shouldValidate: false });
+  };
+
   const onSubmit = async (data: AddProductForm) => {
     try {
       setIsLoading(true);
@@ -91,7 +121,12 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
     }
   };
 
-  const categoryOptions = categories.map((cat) => ({
+  const parentCategoryOptions = parentCategories.map((cat) => ({
+    id: cat.id,
+    name: cat.name,
+  }));
+
+  const childCategoryOptions = childCategories.map((cat) => ({
     id: cat.id,
     name: cat.name,
   }));
@@ -156,7 +191,7 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
             </Label>
             <Input
               {...register("name")}
-              placeholder="LED Bulb 9W"
+              placeholder="Silk Saree"
               disabled={isSubmitting}
             />
             {errors.name?.message && (
@@ -180,47 +215,50 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
             )}
           </div>
 
-          {/* Category and Unit */}
+          {/* Parent Category and Child Category */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex w-full flex-col gap-2">
               <Label>
-                Category <RequiredIndicator />
+                Parent Category <RequiredIndicator />
               </Label>
               <Combobox
-                options={categoryOptions}
+                options={parentCategoryOptions}
+                value={selectedParentId || ""}
+                onValueChange={handleParentCategoryChange}
+                placeholder="Select parent category"
+                emptyText="No parent categories found"
+                disabled={isSubmitting}
+                valueKey="id"
+              />
+            </div>
+
+            <div className="flex w-full flex-col gap-2">
+              <Label>
+                Child Category <RequiredIndicator />
+              </Label>
+              <Combobox
+                options={childCategoryOptions}
                 value={categoryId || ""}
                 onValueChange={(value) =>
                   setValue("categoryId", value, {
                     shouldValidate: true,
                   })
                 }
-                placeholder="Select category"
-                emptyText="No categories found"
-                disabled={isSubmitting}
+                placeholder={
+                  isLoadingChildren
+                    ? "Loading..."
+                    : selectedParentId
+                      ? "Select child category"
+                      : "Select parent first"
+                }
+                emptyText="No child categories found"
+                disabled={
+                  isSubmitting || !selectedParentId || isLoadingChildren
+                }
                 valueKey="id"
               />
               {errors.categoryId?.message && (
                 <ValidationMessage message={errors.categoryId.message} />
-              )}
-            </div>
-
-            <div className="flex w-full flex-col gap-2">
-              <Label>
-                Unit <RequiredIndicator />
-              </Label>
-              <Combobox
-                options={unitOptions}
-                value={unitId || ""}
-                onValueChange={(value) =>
-                  setValue("unitId", value, { shouldValidate: true })
-                }
-                placeholder="Select unit"
-                emptyText="No units found"
-                disabled={isSubmitting}
-                valueKey="id"
-              />
-              {errors.unitId?.message && (
-                <ValidationMessage message={errors.unitId.message} />
               )}
             </div>
           </div>
@@ -298,8 +336,9 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex w-1/2 flex-col gap-2">
+          {/* Min Order Quantity and Unit */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex w-full flex-col gap-2">
               <Label>
                 Min. Order Quantity <RequiredIndicator />
               </Label>
@@ -316,7 +355,26 @@ const ManufacturerAddProductForm = ({ categories, units }: Props) => {
                 <ValidationMessage message={errors.minOrderQuantity.message} />
               )}
             </div>
-            <div className="w-1/2"></div>
+
+            <div className="flex w-full flex-col gap-2">
+              <Label>
+                Unit <RequiredIndicator />
+              </Label>
+              <Combobox
+                options={unitOptions}
+                value={unitId || ""}
+                onValueChange={(value) =>
+                  setValue("unitId", value, { shouldValidate: true })
+                }
+                placeholder="Select unit"
+                emptyText="No units found"
+                disabled={isSubmitting}
+                valueKey="id"
+              />
+              {errors.unitId?.message && (
+                <ValidationMessage message={errors.unitId.message} />
+              )}
+            </div>
           </div>
 
           {/* Switches */}

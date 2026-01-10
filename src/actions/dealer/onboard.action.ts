@@ -111,8 +111,6 @@ export async function onboardDealer({
       })
       .eq("id", userId);
 
-    console.log("updateError", updateError);
-
     if (updateError) {
       return { success: false, message: "Failed to save data." };
     }
