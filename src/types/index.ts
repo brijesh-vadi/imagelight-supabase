@@ -159,7 +159,10 @@ export interface Product {
   category?: Pick<Category, "id" | "name"> & {
     parent?: Pick<Category, "id" | "name"> | null;
   };
-  manufacturer?: Pick<Manufacturer, "id" | "company_name" | "company_logo">;
+  manufacturer?: Pick<Manufacturer, "id" | "company_name" | "company_logo"> & {
+    city?: string | null;
+    state?: string | null;
+  };
   category_id: string;
   created_at: string;
   updated_at: string;

@@ -12,7 +12,6 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,16 +24,7 @@ import {
 
 export default function GetStartedPage() {
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur `supports-backdrop-filter:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center relative w-32 h-32">
-            <Image src="/vercel.svg" alt="Logo" fill className="dark:invert" />
-          </Link>
-        </div>
-      </header>
-
+    <>
       {/* Hero Section */}
       <section className="py-16 bg-linear-to-b from-primary/5 to-background">
         <div className="container mx-auto px-4">
@@ -282,48 +272,6 @@ export default function GetStartedPage() {
       </section>
 
       {/* Additional Info Section */}
-      <section className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-bold text-3xl mb-4">
-              Why Choose Our Platform?
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              We provide a secure, efficient, and user-friendly environment for
-              B2B commerce
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Verified Users</h3>
-                <p className="text-sm text-muted-foreground">
-                  All manufacturers and dealers are verified by our admin team
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Zap className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Fast & Easy</h3>
-                <p className="text-sm text-muted-foreground">
-                  Simple onboarding process and intuitive interface
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Growing Network</h3>
-                <p className="text-sm text-muted-foreground">
-                  Join a thriving community of manufacturers and dealers
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
+    </>
   );
 }
