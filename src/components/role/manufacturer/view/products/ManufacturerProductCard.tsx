@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,6 +28,7 @@ interface ProductCardProps {
 
 const ManufacturerProductCard = ({ product }: ProductCardProps) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -42,6 +44,7 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
     if (response.success) {
       toast.success(response.message);
       setProductToDelete(null);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     } else {
       toast.error(response.message);
     }
@@ -85,7 +88,7 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
           {/* Product Name */}
           <div className="flex items-center justify-between">
             <h3 className="line-clamp-2 font-semibold text-gray-900 text-xl leading-tight">
-              {shortenText(product.name, 30)}
+              {shortenText(product.name, 28)}
             </h3>
             <ProductActionDropdown
               onDetail={() =>
@@ -148,9 +151,23 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
           {/* Category */}
           <div className="flex items-center gap-2">
             <Label>Category :</Label>
-            <Badge variant="secondary">
-              <span className="text-xs">{product.category?.name}</span>
-            </Badge>
+            <div className="flex items-center gap-1">
+              {product.category?.parent && (
+                <>
+                  <Badge variant="outline">
+                    <span className="text-xs">
+                      {product.category.parent.name}
+                    </span>
+                  </Badge>
+                  <span className="text-muted-foreground">/</span>
+                </>
+              )}
+              <Badge variant="secondary">
+                <span className="text-xs">
+                  {product.category?.name || "N/A"}
+                </span>
+              </Badge>
+            </div>
           </div>
         </CardContent>
       </Card>

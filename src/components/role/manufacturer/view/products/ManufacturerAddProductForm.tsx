@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,6 +46,7 @@ const MAX_SECONDARY_IMAGES = 4;
 
 const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [secondaryImages, setSecondaryImages] = useState<
     (FileWithPreview | null)[]
@@ -111,10 +113,13 @@ const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
 
       if (response.success) {
         toast.success(response.message);
+        router.push("/manufacturer/products");
+        queryClient.invalidateQueries({ queryKey: ["products"] });
       } else {
         toast.error(response.message);
       }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast.error("Failed to submit. Please try again.");
     } finally {
       setIsLoading(false);
@@ -501,7 +506,7 @@ const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
           disabled={isLoading || !isValid}
         >
           <span>Save</span>
-          {isLoading && <Spinner />}
+          {isLoading && <Spinner className="w-4 h-4" />}
         </Button>
       </div>
     </form>

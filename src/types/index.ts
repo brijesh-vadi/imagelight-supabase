@@ -140,16 +140,6 @@ export interface Pagination {
   limit: number;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  is_active: boolean;
-  manufacturer_id: string;
-  created_at: string;
-  updated_at: string;
-  product_count?: number;
-}
-
 export interface Product {
   id: string;
   manufacturer_id: string;
@@ -166,7 +156,9 @@ export interface Product {
   regular_price: number;
   unit_id: string;
   unit?: Pick<Unit, "id" | "name">;
-  category?: Pick<Category, "id" | "name">;
+  category?: Pick<Category, "id" | "name"> & {
+    parent?: Pick<Category, "id" | "name"> | null;
+  };
   manufacturer?: Pick<Manufacturer, "id" | "company_name" | "company_logo">;
   category_id: string;
   created_at: string;

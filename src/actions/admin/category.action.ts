@@ -12,14 +12,6 @@ import { Role } from "@/types";
 export async function getAdminCategories(): Promise<ApiResponse<Category[]>> {
   try {
     const supabase = await createClient();
-    const session = await getSession(Role.ADMIN);
-
-    if (!session?.userId) {
-      return {
-        success: false,
-        message: "Unauthorized. Please login again.",
-      };
-    }
 
     const { data: categories, error } = await supabase
       .from("categories")

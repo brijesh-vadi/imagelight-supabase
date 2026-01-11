@@ -70,6 +70,18 @@ export default function ManufacturerProductsClient({
         </Button>
       </div>
 
+      {/* Search and Filters */}
+      <ProductFilters
+        search={search}
+        categoryId={categoryId}
+        unitId={unitId}
+        isActive={isActive}
+        onSearchChange={handleSearchChange}
+        onCategoryChange={handleCategoryChange}
+        onUnitChange={handleUnitChange}
+        onIsActiveChange={handleIsActiveChange}
+      />
+
       {data?.products.length === 0 && (
         <div className="flex items-center justify-center py-22">
           <div className="flex flex-col  mx-auto text-center">
@@ -80,20 +92,6 @@ export default function ManufacturerProductsClient({
             </p>
           </div>
         </div>
-      )}
-
-      {/* Search and Filters */}
-      {data?.products && data.products.length > 0 && (
-        <ProductFilters
-          search={search}
-          categoryId={categoryId}
-          unitId={unitId}
-          isActive={isActive}
-          onSearchChange={handleSearchChange}
-          onCategoryChange={handleCategoryChange}
-          onUnitChange={handleUnitChange}
-          onIsActiveChange={handleIsActiveChange}
-        />
       )}
 
       {/* Loading State */}

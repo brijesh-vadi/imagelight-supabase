@@ -31,6 +31,7 @@ export async function addProduct(
   try {
     const parsed = addProductSchema.safeParse(data);
     if (!parsed.success) {
+      console.error("[addProduct] Validation failed:", parsed.error);
       return {
         success: false,
         message: "Validation failed",
@@ -89,8 +90,6 @@ export async function addProduct(
 
     const uploadErrors = uploadResults.filter((result) => result.error);
     if (uploadErrors.length > 0) {
-      console.error("Image upload errors:", uploadErrors);
-
       const successfulPaths = uploadResults
         .filter((r) => !r.error)
         .map((r) => r.path);
@@ -168,7 +167,6 @@ export async function addProduct(
       message: "Product added successfully",
     };
   } catch (err) {
-    console.error("addProduct error:", err);
     return {
       success: false,
       message: "Unexpected server error",
@@ -202,9 +200,10 @@ export async function getManufacturerProducts(
               id,
               name
             ),
-            category:categories (
+            category:categories!products_category_id_fkey (
               id,
-              name
+              name,
+              parent_id
             )
           `,
         { count: "exact" },
@@ -234,10 +233,41 @@ export async function getManufacturerProducts(
       .range(from, to);
 
     if (error) {
+      console.error("[getManufacturerProducts] Query error:", error);
       return {
         success: false,
         message: "Failed to fetch products",
       };
+    }
+
+    // Fetch parent categories for products that have categories with parent_id
+    if (data && data.length > 0) {
+      const parentIds = data
+        .map((p: any) => p.category?.parent_id)
+        .filter((id): id is string => !!id);
+
+      if (parentIds.length > 0) {
+        const { data: parents } = await supabase
+          .from("categories")
+          .select("id, name")
+          .in("id", parentIds);
+
+        // Map parent data to products
+        if (parents) {
+          data.forEach((product: any) => {
+            if (product.category?.parent_id) {
+              const parent = parents.find(
+                (p) => p.id === product.category.parent_id,
+              );
+              if (parent) {
+                product.category.parent = parent;
+              }
+              // Remove parent_id after attaching parent object
+              delete product.category.parent_id;
+            }
+          });
+        }
+      }
     }
 
     return {
@@ -357,15 +387,31 @@ export async function getManufacturerProductById(
             id,
             name
           ),
-          category:categories (
+          category:categories!products_category_id_fkey (
             id,
-            name
+            name,
+            parent_id
           )
         `,
       )
       .eq("id", productId)
       .eq("manufacturer_id", session?.userId)
       .single();
+
+    // Fetch parent category if exists
+    if (product?.category?.parent_id) {
+      const { data: parent } = await supabase
+        .from("categories")
+        .select("id, name")
+        .eq("id", product.category.parent_id)
+        .single();
+
+      if (parent) {
+        product.category.parent = parent;
+      }
+      // Remove parent_id after attaching parent object
+      delete product.category.parent_id;
+    }
 
     return {
       success: true,

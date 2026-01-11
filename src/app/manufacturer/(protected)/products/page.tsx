@@ -68,7 +68,8 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
         {updateId && (
           <ManufacturerUpdateProductForm
             product={product!}
-            categories={allCategories?.data ?? []}
+            parentCategories={parentCategories?.data?.categories ?? []}
+            allCategories={allCategories?.data ?? []}
             units={units?.data ?? []}
           />
         )}

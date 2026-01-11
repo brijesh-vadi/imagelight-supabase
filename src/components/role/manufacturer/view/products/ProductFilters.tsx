@@ -1,7 +1,7 @@
 "use client";
 
 import { Combobox } from "@/components/ui/combobox";
-import { useCategories } from "@/lib/react-query/hooks/useCategories";
+import { useManufacturerUsedCategories } from "@/lib/react-query/hooks/useManufacturerUsedCategories";
 import { useUnits } from "@/lib/react-query/hooks/useUnits";
 import ProductSearchInput from "./ProductSearchInput";
 
@@ -27,12 +27,15 @@ export default function ProductFilters({
   onIsActiveChange,
 }: Props) {
   const { data: categories = [], isLoading: categoriesLoading } =
-    useCategories();
+    useManufacturerUsedCategories();
   const { data: units = [], isLoading: unitsLoading } = useUnits();
+
+  // Filter to show only child categories (exclude parent categories)
+  const childCategories = categories.filter((cat) => cat.parent_id !== null);
 
   const categoryOptions = [
     { id: "", name: "All" },
-    ...categories.map((cat) => ({ id: cat.id, name: cat.name })),
+    ...childCategories.map((cat) => ({ id: cat.id, name: cat.name })),
   ];
 
   const unitOptions = [
