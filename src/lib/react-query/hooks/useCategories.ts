@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getAdminCategories } from "@/actions/admin/category.action";
 
 export function useCategories() {
   return useQuery({

@@ -4,6 +4,7 @@ import { BadgeCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -12,15 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useManufacturers } from "@/hooks/admin/useManufacturerApplications";
 import { formatDate } from "@/lib/utils";
-import type { Manufacturer } from "@/types";
 
-interface Props {
-  manufacturers: Manufacturer[];
-}
-
-const ApplicationsTable = ({ manufacturers }: Props) => {
+const ApplicationsTable = () => {
   const router = useRouter();
+
+  const { data: manufacturers, isLoading } = useManufacturers({
+    page: 1,
+    limit: 10,
+  });
+
+  if (isLoading)
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
 
   return (
     <div className="space-y-4">
@@ -38,7 +47,7 @@ const ApplicationsTable = ({ manufacturers }: Props) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {manufacturers.map((manufacturer) => (
+          {manufacturers?.data?.map((manufacturer) => (
             <TableRow
               key={manufacturer.id}
               className="h-16 cursor-pointer"

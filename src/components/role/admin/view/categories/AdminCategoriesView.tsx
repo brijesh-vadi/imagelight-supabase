@@ -2,21 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  deleteCategory,
-  updateCategory,
-} from "@/actions/admin/category.action";
+import { deleteCategory } from "@/actions/admin/category.action";
+import { Spinner } from "@/components/ui/spinner";
 import { type TreeDataItem, TreeView } from "@/components/ui/tree-view";
 import { DeleteDialog } from "@/components/widgets/DeleteDialog";
+import { useAdminCategories } from "@/hooks/admin/useAdminCategories";
 import type { Category } from "@/types";
+import AdminAddCategoryModal from "./AdminAddCategoryModal";
 import AdminCategoryActionDropdown from "./AdminCategoryActionDropdown";
 import AdminUpdateCategoryModal from "./AdminCategoryUpdateModal";
 
-interface Props {
-  categories: Category[];
-}
+const AdminCategoriesView = () => {
+  const { data: categories, isLoading } = useAdminCategories();
 
-const AdminCategoriesView = ({ categories }: Props) => {
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null,
   );
@@ -24,6 +22,10 @@ const AdminCategoriesView = ({ categories }: Props) => {
     null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const parentCategories = categories?.filter(
+    (cate) => cate.parent_id === null,
+  );
 
   const handleDeleteIntent = (category: Category) => {
     setCategoryToDelete(category);
@@ -100,7 +102,7 @@ const AdminCategoriesView = ({ categories }: Props) => {
   const treeData = useMemo(
     () =>
       buildAdminCategoryTree(
-        categories,
+        categories ?? [],
         handleUpdateIntent,
         handleDeleteIntent,
       ),
@@ -109,7 +111,22 @@ const AdminCategoriesView = ({ categories }: Props) => {
 
   return (
     <>
-      <TreeView data={treeData} className="p-0" />
+      <div className="flex items-center justify-between border-b pb-4">
+        <div>
+          <h1 className="font-semibold text-2xl text-primary">Categories</h1>
+          <p className="text-muted-foreground text-sm">
+            Manage product categories to organize your inventory
+          </p>
+        </div>
+        <AdminAddCategoryModal parentCategories={parentCategories || []} />
+      </div>
+      {isLoading ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Spinner />
+        </div>
+      ) : (
+        <TreeView data={treeData} className="p-0" />
+      )}
 
       <AdminUpdateCategoryModal
         category={categoryToUpdate}

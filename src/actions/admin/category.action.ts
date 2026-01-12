@@ -7,32 +7,6 @@ import type { ApiResponse, Category } from "@/types";
 import { Role } from "@/types";
 
 /**
- * Get all categories (hierarchical tree)
- */
-export async function getAdminCategories(): Promise<ApiResponse<Category[]>> {
-  try {
-    const supabase = await createClient();
-
-    const { data: categories, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("level", { ascending: true })
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Get categories error:", error);
-      return { success: false, message: "Failed to fetch categories" };
-    }
-
-    return { success: true, data: categories || [] };
-  } catch (error) {
-    console.error("Get categories error:", error);
-    return { success: false, message: "Failed to fetch categories" };
-  }
-}
-
-/**
  * Get root categories (parent categories only)
  */
 export async function getRootCategories(): Promise<

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import PasswordInput from "@/components/widgets/PasswordInput";
 import RequiredIndicator from "@/components/widgets/RequiredIndicator";
 import ValidationMessage from "@/components/widgets/ValidationMessage";
@@ -77,7 +78,7 @@ const AdminSignInForm = () => {
           />
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"}
+            Sign In {loading && <Spinner className="w-4 h-4" />}
           </Button>
         </form>
       </CardContent>

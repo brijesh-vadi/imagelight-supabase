@@ -20,7 +20,7 @@ export default async function AdminPanelLayout({
       <AdminSidebar />
 
       {/* Main content area */}
-      <main className="overflow-auto flex-1 p-4">{children}</main>
+      <main className="overflow-auto flex-1 p-4 relative">{children}</main>
     </div>
   );
 }

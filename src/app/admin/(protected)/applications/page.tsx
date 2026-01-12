@@ -1,12 +1,6 @@
-import { getAllManufacturers } from "@/actions/admin/applications.action";
 import ApplicationsTable from "@/components/role/admin/view/applications/ApplicationTable";
 
 const page = async () => {
-  const { data: manufacturers } = await getAllManufacturers({
-    page: 1,
-    limit: 10,
-  });
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -16,19 +10,12 @@ const page = async () => {
             Manufacturer Applications
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Total: {manufacturers?.length} applications
+            Review,manage and approve manufacturer application requests
           </p>
         </div>
       </div>
 
-      {/* Manufacturers List */}
-      <div className="space-y-4">
-        {manufacturers?.length === 0 ? (
-          <p className="text-center font-medium">No applications found.</p>
-        ) : (
-          <ApplicationsTable manufacturers={manufacturers ?? []} />
-        )}
-      </div>
+      <ApplicationsTable />
     </div>
   );
 };
