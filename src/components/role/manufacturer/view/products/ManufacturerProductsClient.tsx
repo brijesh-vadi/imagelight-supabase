@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useProducts } from "@/lib/react-query/hooks/useProducts";
 import ManufacturerProductsListView from "./ManufacturerProductsListView";
 import ProductFilters from "./ProductFilters";
@@ -96,8 +97,8 @@ export default function ManufacturerProductsClient({
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center min-h-150">
+          <Spinner className="w-8 h-8" />
         </div>
       )}
 

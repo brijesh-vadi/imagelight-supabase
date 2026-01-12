@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getManufacturerProductById } from "@/actions/manufacturer/product.action";
 import ManufacturerProductDetailsView from "@/components/role/manufacturer/view/products/ManufacturerProductDetailsView";
 import { Button } from "@/components/ui/button";
 import BackButton from "@/components/widgets/BackButton";
@@ -12,9 +10,6 @@ interface Props {
 const ManufacturerProductDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
 
-  const { data: product } = await getManufacturerProductById(id);
-
-  if (!product) notFound();
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -32,13 +27,13 @@ const ManufacturerProductDetailsPage = async ({ params }: Props) => {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/manufacturer/products?update-id=${product.id}`}>
+          <Link href={`/manufacturer/products?update-id=${id}`}>
             Update Product
           </Link>
         </Button>
       </div>
 
-      <ManufacturerProductDetailsView product={product} />
+      <ManufacturerProductDetailsView productId={id} />
     </div>
   );
 };

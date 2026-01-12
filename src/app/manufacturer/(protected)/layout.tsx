@@ -4,6 +4,8 @@ import ManufacturerSidebar from "@/components/role/manufacturer/shared/Manufactu
 import { getSession } from "@/lib/supabase/session";
 import { Role } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function ManufacturerLayout({
   children,
 }: {
@@ -25,7 +27,7 @@ export default async function ManufacturerLayout({
           <main className="flex-1 overflow-auto p-4">{children}</main>
         </div>
       ) : (
-        <main className="h-full overflow-hidden p-4">{children}</main>
+        <main className="overflow-hidden p-4 relative">{children}</main>
       )}
     </div>
   );

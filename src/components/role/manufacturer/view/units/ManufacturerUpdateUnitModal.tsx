@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -32,6 +33,8 @@ const ManufacturerUpdateUnitModal = ({
   unit,
   onClose,
 }: UpdateUnitModalProps) => {
+  const queryClient = useQueryClient();
+
   const {
     register,
     handleSubmit,
@@ -57,6 +60,9 @@ const ManufacturerUpdateUnitModal = ({
       reset();
       onClose();
       toast.success(response.message);
+      queryClient.invalidateQueries({
+        queryKey: ["manufacturer-units"],
+      });
     } else {
       toast.error(response.message);
     }
@@ -92,7 +98,7 @@ const ManufacturerUpdateUnitModal = ({
           </div>
           <div className="flex justify-end gap-4">
             <DialogClose asChild>
-              <Button variant="secondary" type="button">
+              <Button variant="secondary" type="button" disabled={isSubmitting}>
                 Cancel
               </Button>
             </DialogClose>
@@ -102,7 +108,7 @@ const ManufacturerUpdateUnitModal = ({
               disabled={isSubmitting}
             >
               <span>Update</span>
-              {isSubmitting && <Spinner />}
+              {isSubmitting && <Spinner className="w-4 h-4" />}
             </Button>
           </div>
         </form>

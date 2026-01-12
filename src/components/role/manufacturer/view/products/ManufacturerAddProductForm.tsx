@@ -3,10 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { getChildCategories } from "@/actions/manufacturer/category.action";
 import { addProduct } from "@/actions/manufacturer/product.action";
 import {
   AlertDialog,
@@ -30,30 +29,29 @@ import FileUpload from "@/components/widgets/FileUpload";
 import NumericField from "@/components/widgets/NumericField";
 import RequiredIndicator from "@/components/widgets/RequiredIndicator";
 import ValidationMessage from "@/components/widgets/ValidationMessage";
+import { useAdminCategories } from "@/hooks/admin/useAdminCategories";
+import { useUnits } from "@/hooks/manufacturer/useUnits";
 import type { FileWithPreview } from "@/hooks/use-file-upload";
 import {
   type AddProductForm,
   addProductSchema,
 } from "@/schema/manufacturer/product";
-import type { Category, Unit } from "@/types";
-
-interface Props {
-  parentCategories: Category[];
-  units: Unit[];
-}
 
 const MAX_SECONDARY_IMAGES = 4;
 
-const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
+const ManufacturerAddProductForm = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { data: units } = useUnits();
+
+  const { data: categories } = useAdminCategories();
+
   const [isLoading, setIsLoading] = useState(false);
   const [secondaryImages, setSecondaryImages] = useState<
     (FileWithPreview | null)[]
   >([null]);
   const [selectedParentId, setSelectedParentId] = useState<string>("");
-  const [childCategories, setChildCategories] = useState<Category[]>([]);
-  const [isLoadingChildren, setIsLoadingChildren] = useState(false);
 
   const {
     register,
@@ -80,27 +78,6 @@ const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
   const unitId = watch("unitId");
   const primaryImage = watch("primaryImage");
 
-  useEffect(() => {
-    const loadChildCategories = async () => {
-      if (!selectedParentId) {
-        setChildCategories([]);
-        return;
-      }
-
-      setIsLoadingChildren(true);
-      const response = await getChildCategories(selectedParentId);
-      if (response.success && response.data) {
-        setChildCategories(response.data.categories);
-      } else {
-        toast.error("Failed to load child categories");
-        setChildCategories([]);
-      }
-      setIsLoadingChildren(false);
-    };
-
-    loadChildCategories();
-  }, [selectedParentId]);
-
   const handleParentCategoryChange = (value: string) => {
     setSelectedParentId(value);
     setValue("categoryId", "", { shouldValidate: false });
@@ -126,20 +103,27 @@ const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
     }
   };
 
-  const parentCategoryOptions = parentCategories.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-  }));
+  const parentCategoryOptions =
+    categories
+      ?.filter((cat) => cat.parent_id === null)
+      .map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+      })) ?? [];
 
-  const childCategoryOptions = childCategories.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-  }));
+  const childCategoryOptions =
+    categories
+      ?.filter((cat) => cat.parent_id === selectedParentId)
+      .map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+      })) ?? [];
 
-  const unitOptions = units.map((unit) => ({
-    id: unit.id,
-    name: unit.name,
-  }));
+  const unitOptions =
+    units?.map((unit) => ({
+      id: unit.id,
+      name: unit.name,
+    })) ?? [];
 
   const handleSecondaryImageChange = (
     index: number,
@@ -250,16 +234,12 @@ const ManufacturerAddProductForm = ({ parentCategories, units }: Props) => {
                   })
                 }
                 placeholder={
-                  isLoadingChildren
-                    ? "Loading..."
-                    : selectedParentId
-                      ? "Select child category"
-                      : "Select parent first"
+                  selectedParentId
+                    ? "Select child category"
+                    : "Select parent first"
                 }
                 emptyText="No child categories found"
-                disabled={
-                  isSubmitting || !selectedParentId || isLoadingChildren
-                }
+                disabled={isSubmitting || !selectedParentId}
                 valueKey="id"
               />
               {errors.categoryId?.message && (

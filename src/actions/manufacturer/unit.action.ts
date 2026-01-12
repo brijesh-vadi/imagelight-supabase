@@ -49,57 +49,6 @@ export async function addUnit(data: UnitForm): Promise<ApiResponse<Unit>> {
   }
 }
 
-export async function getUnits(): Promise<ApiResponse<Unit[]>> {
-  try {
-    const session = await getSession(Role.MANUFACTURER);
-    const supabase = await createClient();
-
-    if (!session?.userId) {
-      return { success: true, data: [] };
-    }
-
-    const { data, error } = await supabase
-      .from("unit")
-      .select(
-        `
-        id,
-        name,
-        created_at,
-        updated_at,
-        manufacturer_id,
-        products:products(count)
-      `,
-      )
-      .eq("manufacturer_id", session?.userId)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("getUnits Supabase error:", error);
-      return {
-        success: false,
-        message: "Failed to fetch units",
-      };
-    }
-
-    const unitsWithCount = data?.map((unit) => ({
-      ...unit,
-      product_count: unit.products?.[0]?.count || 0,
-      products: undefined,
-    }));
-
-    return {
-      success: true,
-      data: unitsWithCount || [],
-    };
-  } catch (err) {
-    console.error("getUnits unexpected error:", err);
-    return {
-      success: false,
-      message: "Something went wrong on our side",
-    };
-  }
-}
-
 export async function deleteUnit(unitId: string): Promise<ApiResponse<null>> {
   try {
     const session = await getSession(Role.MANUFACTURER);

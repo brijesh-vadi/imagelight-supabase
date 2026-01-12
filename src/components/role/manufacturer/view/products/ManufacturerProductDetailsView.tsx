@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -12,24 +12,43 @@ import {
 } from "@/components/ui/carousel";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { useManufacturerProductById } from "@/hooks/manufacturer/useProducts";
 import {
   calculateSavingsPercentage,
   formatDate,
   formatPrice,
 } from "@/lib/utils";
-import type { Product } from "@/types";
 
 interface Props {
-  product: Product;
+  productId: string;
 }
 
-const ManufacturerProductDetailsView = ({ product }: Props) => {
-  const allImages = [product.primary_image, ...(product.images ?? [])].filter(
-    Boolean,
+const ManufacturerProductDetailsView = ({ productId }: Props) => {
+  const {
+    data: product,
+    isError,
+    isLoading,
+  } = useManufacturerProductById(productId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  if (isError || !product) {
+    return <div>Product not found</div>;
+  }
+
+  const allImages = [product?.primary_image, ...(product?.images ?? [])].filter(
+    (img): img is string => typeof img === "string",
   );
 
-  const isLowStock = product.stock > 0 && product.stock < 10;
-  const isOutOfStock = !product.in_stock || product.stock === 0;
+  const isLowStock = product?.stock > 0 && product?.stock < 10;
+  const isOutOfStock = !product?.in_stock || product?.stock === 0;
 
   return (
     <div className="flex items-start gap-10">
@@ -42,7 +61,7 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
                 <div className="relative aspect-square w-full overflow-hidden rounded-md bg-muted">
                   <Image
                     src={img}
-                    alt={`${product.name} - Image ${index + 1}`}
+                    alt={`${product?.name} - Image ${index + 1}`}
                     fill
                     priority={index === 0}
                     className="object-cover"
@@ -72,6 +91,7 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
                   src={img}
                   alt={`Thumbnail ${index + 1}`}
                   fill
+                  priority
                   sizes="(max-width: 768px) 25vw, (max-width: 1024px) 20vw, 15vw"
                   className="object-cover"
                 />
@@ -87,19 +107,19 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
           <div className="flex flex-col gap-2">
             {/* name */}
             <h1 className="text-3xl font-bold tracking-tight">
-              {product.name}
+              {product?.name}
             </h1>
 
             {/* description */}
             <div>
               <p className="text-muted-foreground leading-relaxed text-md">
-                {product.description}
+                {product?.description}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <div className="bg-muted rounded-md p-6 max-w-md w-full">
+            <div className="bg-muted rounded-md p-4 max-w-md w-full">
               <div className="flex items-center justify-between">
                 {/* Regular Price - crossed out if dealer is lower */}
                 <div className="text-center">
@@ -107,31 +127,12 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
                     Regular Price
                   </Label>
                   <p className={"text-2xl font-semibold mt-1"}>
-                    {formatPrice(product.regular_price)} / {product.unit?.name}
+                    {formatPrice(product?.regular_price)} /{" "}
+                    <span className="text-sm">{product?.unit?.name}</span>
                   </p>
                 </div>
 
-                {/* Decorative separator with optional savings badge */}
-                <div className="relative flex flex-col items-center">
-                  {" "}
-                  {/* ← Add "relative" here */}
-                  <div className="flex h-16 items-center">
-                    <Separator orientation="vertical" className="bg-border" />
-                  </div>
-                  {product.dealer_price < product.regular_price && (
-                    <Badge
-                      variant="secondary"
-                      className="absolute mt-18 px-3 py-1 text-xs font-semibold bg-emerald-500 text-white"
-                    >
-                      Dealer Saves{" "}
-                      {calculateSavingsPercentage(
-                        product.regular_price,
-                        product.dealer_price,
-                      )}
-                      %
-                    </Badge>
-                  )}
-                </div>
+                <Separator orientation="vertical" className="!h-20 bg-border" />
 
                 {/* Dealer Price - highlighted as primary */}
                 <div className="text-center">
@@ -139,28 +140,45 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
                     Dealer Price
                   </Label>
                   <p className="text-2xl font-semibold text-primary mt-1">
-                    {formatPrice(product.dealer_price)}/ {product.unit?.name}
+                    {formatPrice(product?.dealer_price)}/{" "}
+                    <span className="text-sm"> {product?.unit?.name}</span>
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 mt-4">
-              {isOutOfStock ? (
-                <Badge variant="destructive" className="text-base px-4 py-1">
-                  Out of Stock
-                </Badge>
-              ) : isLowStock ? (
-                <Badge variant="secondary" className="text-base px-4 py-1">
-                  Only {product.stock} left
-                </Badge>
-              ) : (
+            <div className="flex flex-col gap-2">
+              {product?.dealer_price < product?.regular_price && (
                 <Badge
-                  variant="default"
-                  className="text-base px-4 py-1 bg-green-600"
+                  variant="secondary"
+                  className="px-3 py-1 text-xs font-semibold bg-emerald-500 text-white"
                 >
-                  In Stock
+                  Dealer Saves{" "}
+                  {calculateSavingsPercentage(
+                    product?.regular_price,
+                    product?.dealer_price,
+                  )}
+                  %
                 </Badge>
               )}
+
+              <div className="flex items-center gap-4 w-fit mx-auto">
+                {isOutOfStock ? (
+                  <Badge variant="destructive" className="text-base px-4 py-1">
+                    Out of Stock
+                  </Badge>
+                ) : isLowStock ? (
+                  <Badge variant="secondary" className="text-base px-4 py-1">
+                    Only {product?.stock} left
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="default"
+                    className="text-base px-4 py-1 bg-green-600"
+                  >
+                    In Stock
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -173,7 +191,7 @@ const ManufacturerProductDetailsView = ({ product }: Props) => {
                 <div className="flex justify-between gap-4 font-medium">
                   <span>Unit</span>
                   <span className="text-muted-foreground">
-                    {product.unit?.name}
+                    {product?.unit?.name}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4 font-medium">

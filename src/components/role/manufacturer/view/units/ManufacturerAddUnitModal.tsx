@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ import ValidationMessage from "@/components/widgets/ValidationMessage";
 import { type UnitForm, unitSchema } from "@/schema/manufacturer/unit";
 
 const ManufacturerAddUnitModal = () => {
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const {
@@ -40,6 +42,10 @@ const ManufacturerAddUnitModal = () => {
       reset();
       setIsDialogOpen(false);
       toast.success(response.message);
+
+      queryClient.invalidateQueries({
+        queryKey: ["manufacturer-units"],
+      });
     } else {
       toast.error(response.message);
     }
@@ -82,7 +88,7 @@ const ManufacturerAddUnitModal = () => {
               disabled={isSubmitting}
             >
               <span>Save</span>
-              {isSubmitting && <Spinner />}
+              {isSubmitting && <Spinner className="w-4 h-4" />}
             </Button>
           </div>
         </form>

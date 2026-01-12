@@ -1,8 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { deleteUnit } from "@/actions/manufacturer/unit.action";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -12,12 +14,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DeleteDialog } from "@/components/widgets/DeleteDialog";
+import { useUnits } from "@/hooks/manufacturer/useUnits";
 import { formatDate } from "@/lib/utils";
 import type { Unit } from "@/types";
 import ManufacturerUnitActionDropdown from "./ManufacturerUnitActionDropdown";
 import ManufacturerUpdateUnitModal from "./ManufacturerUpdateUnitModal";
 
-const ManufacturerUnitTable = ({ units }: { units: Unit[] }) => {
+const ManufacturerUnitTable = () => {
+  const { data: units, isLoading } = useUnits();
+
+  const queryClient = useQueryClient();
+
   const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
   const [unitToUpdate, setUnitToUpdate] = useState<Unit | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,10 +39,22 @@ const ManufacturerUnitTable = ({ units }: { units: Unit[] }) => {
     if (response?.success) {
       toast.success(response.message);
       setUnitToDelete(null);
+
+      queryClient.invalidateQueries({
+        queryKey: ["manufacturer-units"],
+      });
     } else {
       toast.error(response.message);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -50,7 +69,7 @@ const ManufacturerUnitTable = ({ units }: { units: Unit[] }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {units.map((unit) => (
+          {units?.map((unit) => (
             <TableRow key={unit.id} className="h-14">
               <TableCell className="pl-5 text-left text-sm">
                 {unit.name}

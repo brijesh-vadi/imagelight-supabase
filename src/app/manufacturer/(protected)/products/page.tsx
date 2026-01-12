@@ -1,8 +1,3 @@
-import { notFound } from "next/navigation";
-import { getAdminCategories } from "@/actions/admin/category.action";
-import { getParentCategories } from "@/actions/manufacturer/category.action";
-import { getManufacturerProductById } from "@/actions/manufacturer/product.action";
-import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddProductForm from "@/components/role/manufacturer/view/products/ManufacturerAddProductForm";
 import ManufacturerProductsClient from "@/components/role/manufacturer/view/products/ManufacturerProductsClient";
 import ManufacturerUpdateProductForm from "@/components/role/manufacturer/view/products/ManufacturerUpdateProductForm";
@@ -30,19 +25,6 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
   const updateId = params["update-id"];
 
   if (isAddMode || updateId) {
-    const [units, parentCategories, allCategories] = await Promise.all([
-      getUnits(),
-      getParentCategories(),
-      getAdminCategories(),
-    ]);
-
-    let product = null;
-    if (updateId) {
-      const { data: productData } = await getManufacturerProductById(updateId);
-      if (!productData) notFound();
-      product = productData;
-    }
-
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -59,20 +41,8 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
             </p>
           </div>
         </div>
-        {isAddMode && (
-          <ManufacturerAddProductForm
-            parentCategories={parentCategories?.data?.categories ?? []}
-            units={units?.data ?? []}
-          />
-        )}
-        {updateId && (
-          <ManufacturerUpdateProductForm
-            product={product!}
-            parentCategories={parentCategories?.data?.categories ?? []}
-            allCategories={allCategories?.data ?? []}
-            units={units?.data ?? []}
-          />
-        )}
+        {isAddMode && <ManufacturerAddProductForm />}
+        {updateId && <ManufacturerUpdateProductForm productId={updateId} />}
       </div>
     );
   }

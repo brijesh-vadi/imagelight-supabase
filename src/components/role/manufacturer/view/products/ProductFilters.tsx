@@ -1,8 +1,8 @@
 "use client";
 
 import { Combobox } from "@/components/ui/combobox";
+import { useUnits } from "@/hooks/manufacturer/useUnits";
 import { useManufacturerUsedCategories } from "@/lib/react-query/hooks/useManufacturerUsedCategories";
-import { useUnits } from "@/lib/react-query/hooks/useUnits";
 import ProductSearchInput from "./ProductSearchInput";
 
 interface Props {

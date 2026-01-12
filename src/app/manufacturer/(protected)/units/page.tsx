@@ -1,11 +1,7 @@
-import { getUnits } from "@/actions/manufacturer/unit.action";
 import ManufacturerAddUnitModal from "@/components/role/manufacturer/view/units/ManufacturerAddUnitModal";
 import ManufacturerUnitTable from "@/components/role/manufacturer/view/units/ManufacturerUnitTable";
 
-export const dynamic = "force-dynamic";
-
 const ManufacturerUnitsPage = async () => {
-  const units = await getUnits();
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -19,12 +15,7 @@ const ManufacturerUnitsPage = async () => {
         <ManufacturerAddUnitModal />
       </div>
 
-      {/* table */}
-      {units.data?.length === 0 ? (
-        <p className="text-center font-medium">No units found.</p>
-      ) : (
-        <ManufacturerUnitTable units={units.data || []} />
-      )}
+      <ManufacturerUnitTable />
     </div>
   );
 };

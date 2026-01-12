@@ -2,8 +2,8 @@
 
 import ProductSearchInput from "@/components/role/manufacturer/view/products/ProductSearchInput";
 import { Combobox } from "@/components/ui/combobox";
-import { useCategories } from "@/lib/react-query/hooks/useCategories";
-import { useUnits } from "@/lib/react-query/hooks/useUnits";
+import { useAdminCategories } from "@/hooks/admin/useAdminCategories";
+import { useUnits } from "@/hooks/manufacturer/useUnits";
 
 interface Props {
   search: string;
@@ -23,8 +23,9 @@ const DealerProductFilters = ({
   onUnitChange,
 }: Props) => {
   const { data: categories = [], isLoading: categoriesLoading } =
-    useCategories();
-  const { data: units = [], isLoading: unitsLoading } = useUnits();
+    useAdminCategories();
+
+  const { data: units, isLoading: unitsLoading } = useUnits();
 
   const categoryOptions = [
     { id: "", name: "All" },
@@ -33,7 +34,7 @@ const DealerProductFilters = ({
 
   const unitOptions = [
     { id: "", name: "All" },
-    ...units.map((unit) => ({ id: unit.id, name: unit.name })),
+    ...(units?.map((unit) => ({ id: unit.id, name: unit.name })) ?? []),
   ];
 
   return (
