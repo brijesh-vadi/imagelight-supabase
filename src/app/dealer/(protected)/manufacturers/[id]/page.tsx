@@ -1,6 +1,3 @@
-import { notFound } from "next/navigation";
-import { getDealerApplicationHistoryForManufacturer } from "@/actions/dealer/application.action";
-import { getManufacturerById } from "@/actions/dealer/manufacturer.action";
 import ManufacturerDetailsView from "@/components/role/dealer/views/manufacturers/ManufacturerDetailsView";
 
 interface Props {
