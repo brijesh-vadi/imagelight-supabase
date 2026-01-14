@@ -1,13 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import type { Dealer } from "@/types";
 import DealerOnboardForm from "./DealerOnboardForm";
 
-const DealerOnboardModal = ({ userId }: { userId: string }) => {
+interface Props {
+  userId: string;
+  dealer: Dealer;
+}
+
+const DealerOnboardModal = ({ userId, dealer }: Props) => {
   const [open, setOpen] = useState(true);
 
   return (
-    <DealerOnboardForm userId={userId} open={open} onOpenChange={setOpen} />
+    <DealerOnboardForm
+      userId={userId}
+      open={open}
+      onOpenChange={setOpen}
+      dealer={dealer}
+    />
   );
 };
 

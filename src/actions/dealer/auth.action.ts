@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createSession } from "@/lib/supabase/session";
 import {
@@ -172,6 +173,8 @@ export async function getDealerProfile(
         state,
         pincode,
         verification_document,
+        is_added_by_manufacturer,
+        added_by_manufacturer_id,
         created_at,
         updated_at
       `,
@@ -197,4 +200,37 @@ export async function getDealerProfile(
       message: "Failed to fetch profile.",
     };
   }
+}
+
+export async function updateDealerPassword(
+  dealerId: string,
+  newPassword: string,
+): Promise<ApiResponse<Dealer>> {
+  const supabase = await createClient();
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  const { data: dealer, error } = await supabase
+    .from("dealers")
+    .update({
+      password_hash: passwordHash,
+      is_added_by_manufacturer: false,
+    })
+    .eq("id", dealerId);
+
+  if (error) {
+    console.error("updateDealerPassword error:", error);
+    return {
+      success: false,
+      data: dealer!,
+      message: "Failed to update password.",
+    };
+  }
+
+  revalidatePath("/dealer/dashboard");
+
+  return {
+    success: true,
+    message: "Password updated successfully.",
+  };
 }

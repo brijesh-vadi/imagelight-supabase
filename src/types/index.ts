@@ -154,8 +154,6 @@ export interface Product {
   is_active: boolean;
   dealer_price: number;
   regular_price: number;
-  is_added_by_manufacturer: boolean;
-  added_by_manufacturer_id: string;
   unit_id: string;
   unit?: Pick<Unit, "id" | "name">;
   category?: Pick<Category, "id" | "name"> & {
@@ -187,6 +185,8 @@ export interface Dealer {
   state: string | null;
   pincode: string | null;
   verification_document: string | null;
+  is_added_by_manufacturer: boolean;
+  added_by_manufacturer_id: string;
   created_at: string;
   updated_at: string;
 }

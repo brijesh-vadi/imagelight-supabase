@@ -29,6 +29,7 @@ import {
   type DealerOnboardingForm,
   dealerOnboardingSchema,
 } from "@/schema/dealer/onboard";
+import type { Dealer } from "@/types";
 
 const STEPS = [
   { id: 1, name: "Basic Information" },
@@ -52,11 +53,12 @@ const totalSteps = 2;
 
 interface Props {
   userId: string;
+  dealer: Dealer;
   open: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-const DealerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
+const DealerOnboardForm = ({ userId, open, onOpenChange, dealer }: Props) => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,6 +75,8 @@ const DealerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
     mode: "onSubmit",
     resolver: zodResolver(dealerOnboardingSchema),
     defaultValues: {
+      companyName: dealer?.company_name,
+      contactPerson: dealer?.contact_person,
       companyLogo: null,
       verificationDocument: null,
     } as unknown as DealerOnboardingForm,

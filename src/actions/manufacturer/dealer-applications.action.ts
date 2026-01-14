@@ -101,7 +101,7 @@ export async function getDealerById(dealerId: string): Promise<
     return {
       success: true,
       data: {
-        ...dealer,
+        ...(dealer as Dealer),
         application_history: history || [],
         application_status: currentStatus,
       },

@@ -78,7 +78,6 @@ export async function addDealer(data: DealerForm): Promise<ApiResponse<null>> {
       };
     }
 
-    // 3️⃣ Revalidate correct path
     revalidatePath("/manufacturer/dealer-applications");
 
     return {
