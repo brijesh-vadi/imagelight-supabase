@@ -31,7 +31,6 @@ export default async function ProductDetailPage({ params }: Props) {
     Boolean,
   );
 
-  // Fetch initial products from the same manufacturer
   const moreProductsResponse = product.manufacturer?.id
     ? await getProductsByManufacturer(product.manufacturer.id, product.id, 1, 8)
     : null;
@@ -42,17 +41,19 @@ export default async function ProductDetailPage({ params }: Props) {
   return (
     <>
       {/* Header */}
-      <div className="container mx-auto p-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-sm">
-          <ArrowLeft className="h-4 w-4" />
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 text-xs sm:text-sm">
+          <div className="bg-primary p-2 rounded-full">
+            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+          </div>
           Back to Products
         </Link>
       </div>
 
       {/* Product Detail */}
       <section className="py-0">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 max-w-7xl mx-auto">
             {/* Left: Images */}
             <ProductImageGallery
               images={allImages}
@@ -60,12 +61,16 @@ export default async function ProductDetailPage({ params }: Props) {
             />
 
             {/* Right: Product Info */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+                  {product.name}
+                </h1>
                 {product.category && (
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="secondary">{product.category.name}</Badge>
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                    <Badge variant="secondary" className="text-xs sm:text-sm">
+                      {product.category.name}
+                    </Badge>
                   </div>
                 )}
               </div>
@@ -75,15 +80,15 @@ export default async function ProductDetailPage({ params }: Props) {
               <div>
                 <div className="flex items-baseline gap-2 mb-2">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       Retail Price
                     </span>
-                    <span className="text-3xl font-bold text-primary">
+                    <span className="text-2xl sm:text-3xl font-bold text-primary">
                       {formatPrice(product.regular_price)}
                     </span>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground italic">
+                <p className="text-xs sm:text-sm text-muted-foreground italic">
                   Apply for dealership to see wholesale prices
                 </p>
               </div>
@@ -91,26 +96,32 @@ export default async function ProductDetailPage({ params }: Props) {
               <Separator />
 
               <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground">{product.description}</p>
+                <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                  Description
+                </h3>
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  {product.description}
+                </p>
               </div>
 
               <Separator />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Stock</p>
-                  <p className="font-medium">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                    Stock
+                  </p>
+                  <p className="font-medium text-sm sm:text-base">
                     {product.in_stock
                       ? `${product.stock} available`
                       : "Out of stock"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
                     Min. Order
                   </p>
-                  <p className="font-medium">
+                  <p className="font-medium text-sm sm:text-base">
                     {product.min_order_quantity} {product.unit?.name}
                   </p>
                 </div>
@@ -120,25 +131,28 @@ export default async function ProductDetailPage({ params }: Props) {
 
               {product.manufacturer && (
                 <div>
-                  <h3 className="font-semibold mb-2">Manufacturer</h3>
-                  <div className="flex items-center gap-3">
+                  <h3 className="font-semibold mb-2 text-sm sm:text-base">
+                    Manufacturer
+                  </h3>
+                  <div className="flex items-center gap-2 sm:gap-3">
                     {product.manufacturer.company_logo && (
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted">
+                      <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-muted shrink-0">
                         <Image
                           src={product.manufacturer.company_logo}
                           alt={product.manufacturer.company_name}
                           fill
                           className="object-cover"
+                          sizes="48px"
                         />
                       </div>
                     )}
                     <div>
-                      <p className="font-medium">
+                      <p className="font-medium text-sm sm:text-base">
                         {product.manufacturer.company_name}
                       </p>
                       {(product.manufacturer.city ||
                         product.manufacturer.state) && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {[
                             product.manufacturer.city,
                             product.manufacturer.state,
@@ -155,10 +169,14 @@ export default async function ProductDetailPage({ params }: Props) {
               <Separator />
 
               <div className="space-y-3">
-                <Button asChild size="lg" className="w-full">
+                <Button
+                  asChild
+                  size="default"
+                  className="w-full text-sm sm:text-base"
+                >
                   <Link href="/dealer/sign-up">Apply for Dealership</Link>
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
+                <p className="text-xs text-center text-muted-foreground px-2">
                   Get verified as a dealer to place bulk orders at wholesale
                   prices
                 </p>

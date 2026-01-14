@@ -47,6 +47,7 @@ export default function ProductImageGallery({ images, productName }: Props) {
                   fill
                   className="object-cover"
                   priority={index === 0}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
             </CarouselItem>
@@ -80,6 +81,7 @@ export default function ProductImageGallery({ images, productName }: Props) {
                 alt={`${productName} thumbnail ${index + 1}`}
                 fill
                 className="object-cover"
+                sizes="20vw"
               />
             </button>
           ))}

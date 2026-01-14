@@ -168,13 +168,13 @@ export default function LandingPageClient({
     <>
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-linear-to-b from-primary/5 via-background to-background">
-        <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 py-8 sm:py-10 md:py-12 lg:py-16">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="font-bold text-4xl md:text-5xl lg:text-6xl tracking-tight mb-4">
+            <h1 className="font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight mb-3 sm:mb-4 leading-tight">
               Premium Sarees
               <span className="text-primary"> Wholesale</span>
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl mb-6 max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
               Connect directly with verified saree manufacturers. Browse our
               collection and place bulk orders.
             </p>
@@ -183,12 +183,12 @@ export default function LandingPageClient({
       </section>
 
       {/* Categories Section */}
-      <section className="py-8 border-b bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <section className="py-4 sm:py-6 md:py-8 border-b bg-secondary/30">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-3 px-3 sm:mx-0 sm:px-0">
             <Badge
               variant={selectedCategory === "all" ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap px-4 py-2 text-sm"
+              className="cursor-pointer whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm shrink-0"
               onClick={() => handleCategoryChange("all")}
             >
               All Sarees
@@ -199,7 +199,7 @@ export default function LandingPageClient({
                 variant={
                   selectedCategory === category.id ? "default" : "outline"
                 }
-                className="cursor-pointer whitespace-nowrap px-4 py-2 text-sm"
+                className="cursor-pointer whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm shrink-0"
                 onClick={() => handleCategoryChange(category.id)}
               >
                 {category.name}
@@ -210,200 +210,215 @@ export default function LandingPageClient({
       </section>
 
       {/* Products Section */}
-      <section id="products-section" className="py-12">
-        <div className="container mx-auto px-4">
+      <section id="products-section" className="py-6 sm:py-8 md:py-10 lg:py-12">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               {Array.from({ length: 12 }).map((_, i) => (
                 <Card
                   key={i}
                   className="flex flex-col p-0 gap-0 h-full overflow-hidden"
                 >
                   <Skeleton className="aspect-square w-full" />
-                  <CardContent className="p-4 flex flex-col flex-1 gap-1">
+                  <CardContent className="p-2 sm:p-3 md:p-4 flex flex-col flex-1 gap-1">
                     <div className="mb-2">
-                      <Skeleton className="h-4 w-full mb-1" />
-                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 sm:h-4 w-full mb-1" />
+                      <Skeleton className="h-3 sm:h-4 w-3/4" />
                     </div>
                     <div className="mb-2">
-                      <Skeleton className="h-5 w-20" />
+                      <Skeleton className="h-4 sm:h-5 w-16 sm:w-20" />
                     </div>
-                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-5 sm:h-6 w-20 sm:w-24" />
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground text-lg">
+            <div className="text-center py-12 sm:py-16">
+              <p className="text-muted-foreground text-base sm:text-lg px-4">
                 No products available in this category
               </p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">{products.map((product) => {
-                const allImages = [
-                  product.primary_image,
-                  ...(product.images ?? []),
-                ].filter(Boolean);
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+                {products.map((product) => {
+                  const allImages = [
+                    product.primary_image,
+                    ...(product.images ?? []),
+                  ].filter(Boolean);
 
-                return (
-                  <Link
-                    href={`/products/${product.id}`}
-                    key={product.id}
-                    className="block"
-                  >
-                    <Card className="group overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0 gap-0 h-full cursor-pointer">
-                      <div className="relative aspect-square overflow-hidden bg-muted">
-                        {allImages.length > 1 ? (
-                          <Carousel
-                            opts={{ loop: true }}
-                            className="w-full h-full"
-                          >
-                            <CarouselContent>
-                              {allImages.map((image, index) => (
-                                <CarouselItem key={index}>
-                                  <div className="relative aspect-square">
-                                    <Image
-                                      src={image || "/placeholder.png"}
-                                      alt={`${product.name} - ${index + 1}`}
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="left-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <CarouselNext className="right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Carousel>
-                        ) : (
-                          <Image
-                            src={product.primary_image || "/placeholder.png"}
-                            alt={product.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        )}
-                      </div>
-                      <CardContent className="p-4 flex flex-col flex-1 gap-1">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="font-semibold text-sm line-clamp-2 flex-1">
-                            {shortenText(product.name, 30)}
-                          </h3>
-                        </div>
-                        {product.category && (
-                          <div className="flex items-center gap-1 mb-2 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {product.category.name}
-                            </Badge>
-                          </div>
-                        )}
-                        <div className="mb-2">
-                          <span className="font-bold text-lg text-primary">
-                            {formatPrice(product.regular_price)}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                          {product.manufacturer && (
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-5 w-5">
-                                <AvatarImage
-                                  src={product.manufacturer.company_logo}
-                                  alt={`${product.manufacturer.company_logo} logo`}
-                                  className="object-cover"
-                                />
-                                <AvatarFallback className="text-lg">
-                                  {product.manufacturer?.company_name?.[0]}
-                                  {product.manufacturer?.company_name?.[1]}
-                                </AvatarFallback>
-                              </Avatar>
-                              <p className="text-xs text-muted-foreground">
-                                {product.manufacturer.company_name}
-                              </p>
-                            </div>
+                  return (
+                    <Link
+                      href={`/products/${product.id}`}
+                      key={product.id}
+                      className="block"
+                    >
+                      <Card className="group overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0 gap-0 h-full cursor-pointer">
+                        <div className="relative aspect-square overflow-hidden bg-muted">
+                          {allImages.length > 1 ? (
+                            <Carousel
+                              opts={{ loop: true }}
+                              className="w-full h-full"
+                            >
+                              <CarouselContent>
+                                {allImages.map((image, index) => (
+                                  <CarouselItem key={index}>
+                                    <div className="relative aspect-square">
+                                      <Image
+                                        src={image || "/placeholder.png"}
+                                        alt={`${product.name} - ${index + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                      />
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-1 sm:left-2 h-6 w-6 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <CarouselNext className="right-1 sm:right-2 h-6 w-6 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Carousel>
+                          ) : (
+                            <Image
+                              src={product.primary_image || "/placeholder.png"}
+                              alt={product.name}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            />
                           )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => page > 1 && handlePageChange(page - 1)}
-                        className={
-                          page === 1
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-
-                    {renderPaginationItems()}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() =>
-                          page < totalPages && handlePageChange(page + 1)
-                        }
-                        className={
-                          page === totalPages
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                        <CardContent className="p-2 sm:p-3 md:p-4 flex flex-col flex-1 gap-0.5 sm:gap-1">
+                          <div className="flex items-start justify-between gap-1 sm:gap-2 mb-1 sm:mb-2">
+                            <h3 className="font-semibold text-xs sm:text-sm line-clamp-2 flex-1 h-10">
+                              {shortenText(product.name, 40)}
+                            </h3>
+                          </div>
+                          {product.category && (
+                            <div className="flex items-center gap-1 mb-1 sm:mb-2 flex-wrap">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 sm:py-0.5"
+                              >
+                                {product.category.name}
+                              </Badge>
+                            </div>
+                          )}
+                          <div className="mb-1 sm:mb-2 flex items-center gap-2">
+                            <span className="font-bold text-sm sm:text-base md:text-lg text-primary">
+                              {formatPrice(product.regular_price)}{" "}
+                            </span>
+                            <span className="text-xs font-normal text-muted-foreground">
+                              (Retail Price)
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-2 sm:gap-4">
+                            {product.manufacturer && (
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <Avatar className="h-4 w-4 sm:h-5 sm:w-5">
+                                  <AvatarImage
+                                    src={product.manufacturer.company_logo}
+                                    alt={`${product.manufacturer.company_logo} logo`}
+                                    className="object-cover"
+                                  />
+                                  <AvatarFallback className="text-[10px] sm:text-xs">
+                                    {product.manufacturer?.company_name?.[0]}
+                                    {product.manufacturer?.company_name?.[1]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1">
+                                  {product.manufacturer.company_name}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
-            )}
-          </>
+
+              {totalPages > 1 && (
+                <div className="mt-6 sm:mt-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => page > 1 && handlePageChange(page - 1)}
+                          className={
+                            page === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+
+                      {renderPaginationItems()}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            page < totalPages && handlePageChange(page + 1)
+                          }
+                          className={
+                            page === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
 
-      <section className="py-16 bg-secondary/30">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-secondary/30">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-bold text-3xl mb-4">
+            <h2 className="font-bold text-xl sm:text-2xl md:text-3xl mb-3 sm:mb-4">
               Why Choose Our Platform?
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg mb-6 sm:mb-8 px-2">
               We provide a secure, efficient, and user-friendly environment for
               B2B commerce
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Shield className="h-6 w-6 text-primary" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+              <div className="text-center p-4 sm:p-0">
+                <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 sm:mb-3">
+                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Verified Users</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                  Verified Users
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   All manufacturers and dealers are verified by our admin team
                 </p>
               </div>
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Zap className="h-6 w-6 text-primary" />
+              <div className="text-center p-4 sm:p-0">
+                <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 sm:mb-3">
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Fast & Easy</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                  Fast & Easy
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Simple onboarding process and intuitive interface
                 </p>
               </div>
-              <div className="text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Users className="h-6 w-6 text-primary" />
+              <div className="text-center p-4 sm:p-0">
+                <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 sm:mb-3">
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Growing Network</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-sm sm:text-base mb-1 sm:mb-2">
+                  Growing Network
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Join a thriving community of manufacturers and dealers
                 </p>
               </div>
@@ -413,24 +428,29 @@ export default function LandingPageClient({
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="font-bold text-3xl md:text-4xl mb-4">
+      <section className="py-8 sm:py-12 md:py-16 bg-primary text-primary-foreground">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 text-center">
+          <h2 className="font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-3 sm:mb-4">
             Start Your Saree Business Today
           </h2>
-          <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-primary-foreground/90 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Join as a manufacturer to showcase your sarees or as a dealer to
             access wholesale prices.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button asChild size="lg" variant="secondary" className="text-base">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center px-4 sm:px-0">
+            <Button
+              asChild
+              size="default"
+              variant="secondary"
+              className="text-sm sm:text-base w-full sm:w-auto sm:min-w-50"
+            >
               <Link href="/manufacturer/sign-up">Join as Manufacturer</Link>
             </Button>
             <Button
               asChild
-              size="lg"
+              size="default"
               variant="outline"
-              className="text-base bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+              className="text-sm sm:text-base w-full sm:w-auto sm:min-w-50 bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
             >
               <Link href="/dealer/sign-up">Join as Dealer</Link>
             </Button>
