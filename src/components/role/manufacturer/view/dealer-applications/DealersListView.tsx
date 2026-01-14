@@ -1,21 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { useState } from "react";
-import { getDealersAppliedToManufacturer } from "@/actions/manufacturer/dealer-applications.action";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useDealerApplications } from "@/hooks/manufacturer/useDealerApplications";
 import DealersTable from "./DealersTable";
 
 const DealersListView = () => {
   const [page, setPage] = useState(1);
   const limit = 12;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["dealers-applied", page, limit],
-    queryFn: () => getDealersAppliedToManufacturer({ page, limit }),
-  });
+  const { data, isLoading } = useDealerApplications({ page, limit });
 
   if (isLoading) {
     return (

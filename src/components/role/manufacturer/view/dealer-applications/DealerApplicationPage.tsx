@@ -1,30 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import type {
-  ApplicationStatus,
-  Dealer,
-  DealerApplicationHistoryEntry,
-} from "@/types";
+import { useEffect, useState } from "react";
+import { useDealerById } from "@/hooks/manufacturer/useDealerApplications";
+import type { ApplicationStatus } from "@/types";
 import DealerApplicationActions from "./DealerApplicationActions";
 import DealerDetailsView from "./DealerDetailsView";
 
 interface Props {
-  initialDealer: Dealer & {
-    application_history?: DealerApplicationHistoryEntry[];
-    application_status?: ApplicationStatus;
-  };
   dealerId: string;
 }
 
-const DealerApplicationPage = ({ initialDealer, dealerId }: Props) => {
-  const [applicationStatus, setApplicationStatus] = useState<
-    ApplicationStatus | undefined
-  >(initialDealer.application_status);
+const DealerApplicationPage = ({ dealerId }: Props) => {
+  const { data } = useDealerById(dealerId);
+
+  const dealer = data?.data;
+
+  const [applicationStatus, setApplicationStatus] =
+    useState<ApplicationStatus>();
+
+  useEffect(() => {
+    if (dealer?.application_status) {
+      setApplicationStatus(dealer.application_status);
+    }
+  }, [dealer?.application_status]);
 
   const handleStatusChange = (newStatus: ApplicationStatus) => {
     setApplicationStatus(newStatus);
   };
+
+  if (!dealer) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -48,7 +54,7 @@ const DealerApplicationPage = ({ initialDealer, dealerId }: Props) => {
       </div>
       <DealerDetailsView
         dealer={{
-          ...initialDealer,
+          ...dealer,
           application_status: applicationStatus,
         }}
       />

@@ -7,43 +7,6 @@ import type { ApiResponse, Category } from "@/types";
 import { Role } from "@/types";
 
 /**
- * Get root categories (parent categories only)
- */
-export async function getRootCategories(): Promise<
-  ApiResponse<{ categories: Category[] }>
-> {
-  try {
-    const supabase = await createClient();
-    const session = await getSession(Role.ADMIN);
-
-    if (!session?.userId) {
-      return {
-        success: false,
-        message: "Unauthorized. Please login again.",
-      };
-    }
-
-    const { data: categories, error } = await supabase
-      .from("categories")
-      .select("*")
-      .is("parent_id", null)
-      .eq("is_active", true)
-      .order("display_order", { ascending: true })
-      .order("name", { ascending: true });
-
-    if (error) {
-      console.error("Get root categories error:", error);
-      return { success: false, message: "Failed to fetch root categories" };
-    }
-
-    return { success: true, data: { categories: categories || [] } };
-  } catch (error) {
-    console.error("Get root categories error:", error);
-    return { success: false, message: "Failed to fetch root categories" };
-  }
-}
-
-/**
  * Add new category
  */
 export async function addCategory(data: {
