@@ -1,21 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Building2 } from "lucide-react";
 import { useState } from "react";
-import { getAllManufacturers } from "@/actions/dealer/manufacturer.action";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useManufacturers } from "@/hooks/dealer/useManufacturers";
 import ManufacturersTable from "./ManufacturersTable";
 
 const ManufacturersListView = () => {
   const [page, setPage] = useState(1);
   const limit = 12;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["manufacturers", page, limit],
-    queryFn: () => getAllManufacturers({ page, limit }),
-  });
+  const { data, isLoading } = useManufacturers({ page, limit });
 
   if (isLoading) {
     return (

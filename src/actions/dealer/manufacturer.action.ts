@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { ApiResponse, Manufacturer, Pagination, Product } from "@/types";
+import type { ApiResponse, Manufacturer, Product } from "@/types";
 
 export type ManufacturerListItem = Pick<
   Manufacturer,
@@ -19,52 +19,6 @@ export type ManufacturerListItem = Pick<
   | "website"
   | "company_description"
 > & { products?: Product[]; totalProducts?: number };
-
-export async function getAllManufacturers({
-  page = 1,
-  limit = 20,
-}: Pagination): Promise<
-  ApiResponse<{ manufacturers: ManufacturerListItem[]; total: number }>
-> {
-  const supabase = await createClient();
-
-  try {
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
-
-    const { data, error, count } = await supabase
-      .from("manufacturer")
-      .select(
-        "id, company_name, company_logo, contact_person, gst_number, email, mobile, address, city, state, pincode, website, company_description",
-        { count: "exact" },
-      )
-      .eq("is_active", true)
-      .eq("application_status", "APPROVED")
-      .order("created_at", { ascending: false })
-      .range(from, to);
-
-    if (error) {
-      return {
-        success: false,
-        message: "Failed to fetch manufacturers.",
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        manufacturers: data ?? [],
-        total: count ?? 0,
-      },
-    };
-  } catch (err) {
-    console.error("Unexpected error in getAllManufacturers:", err);
-    return {
-      success: false,
-      message: "Something went wrong. Please try again.",
-    };
-  }
-}
 
 export async function getManufacturerById(
   manufacturerId: string,

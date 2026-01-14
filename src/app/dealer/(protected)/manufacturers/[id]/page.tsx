@@ -10,14 +10,6 @@ interface Props {
 const ManufacturerDetailsPage = async ({ params }: Props) => {
   const { id } = await params;
 
-  const { data: manufacturer } = await getManufacturerById(id, true);
-
-  if (!manufacturer) notFound();
-
-  const { data: history } = await getDealerApplicationHistoryForManufacturer(
-    manufacturer.id,
-  );
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -32,10 +24,7 @@ const ManufacturerDetailsPage = async ({ params }: Props) => {
           </p>
         </div>
       </div>
-      <ManufacturerDetailsView
-        manufacturer={manufacturer}
-        history={history || []}
-      />
+      <ManufacturerDetailsView manufacturerId={id} />
     </div>
   );
 };

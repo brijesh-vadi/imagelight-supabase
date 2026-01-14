@@ -22,6 +22,6 @@ export function useDealerById(dealerId: string) {
     queryKey: ["manufacturer-dealer", dealerId],
     queryFn: () => fetchDealerById(dealerId),
     enabled: !!dealerId,
-    staleTime: 60 * 1000,
+    staleTime: 60 * 1000 * 5,
   });
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,28 +20,30 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/widgets/EmblaCarousel";
+import { useDealerApplicationHistory } from "@/hooks/dealer/useDealerApplicationHistory";
+import { useManufacturerById } from "@/hooks/dealer/useManufacturers";
 import { cn, formatPrice, shortenText } from "@/lib/utils";
-import type {
-  ApplicationStatus,
-  DealerApplicationHistoryEntry,
-  Manufacturer,
-  Product,
-} from "@/types";
+import type { ApplicationStatus } from "@/types";
 
 interface Props {
-  manufacturer: Manufacturer & { products?: Product[]; totalProducts?: number };
-  history: DealerApplicationHistoryEntry[];
+  manufacturerId: string;
 }
 
-const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
+const ManufacturerDetailsView = ({ manufacturerId }: Props) => {
+  const { data } = useManufacturerById(manufacturerId, true);
+
+  const { data: history } = useDealerApplicationHistory(manufacturerId);
+
+  const manufacturer = data?.data;
+
   const router = useRouter();
   const [isApplyingDealership, setIsApplyingDealership] = useState(false);
-  const hasApplication = history && history.length > 0;
+  const hasApplication = history?.data && history.data?.length > 0;
 
   const handleApplyDealership = async () => {
     setIsApplyingDealership(true);
     try {
-      const result = await sendDealershipRequest(manufacturer.id);
+      const result = await sendDealershipRequest(manufacturerId);
       if (!result.success) {
         toast.error(result.message || "Something went wrong");
         return;
@@ -56,9 +57,11 @@ const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
     }
   };
 
+  if (!history?.data) return null;
+
   const currentStatus =
-    history && history.length > 0
-      ? (history[history.length - 1].status as ApplicationStatus)
+    history && history?.data?.length > 0
+      ? (history.data[history?.data?.length - 1].status as ApplicationStatus)
       : null;
 
   const isApproved = currentStatus === "APPROVED";
@@ -229,7 +232,7 @@ const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
           ) : (
             <ApplicationTimeline
               currentStatus={currentStatus || "PENDING"}
-              history={history}
+              history={history.data!}
               className="h-[calc(100vh-400px)]"
               type="dealer"
             />
@@ -240,7 +243,7 @@ const ManufacturerDetailsView = ({ manufacturer, history }: Props) => {
         <CardHeader className="px-4 py-2 bg-secondary text-center gap-0">
           <CardTitle className="flex items-center">
             <span className="flex-1 text-base text-center">Products</span>
-            {manufacturer.totalProducts && manufacturer.totalProducts > 3 && (
+            {manufacturer?.totalProducts && manufacturer.totalProducts > 3 && (
               <Button size="sm" className="ml-auto">
                 View All
               </Button>

@@ -15,6 +15,6 @@ export function useManufacturerProductById(productId: string) {
       return res.data;
     },
     enabled: !!productId,
-    staleTime: 60 * 1000,
+    staleTime: 60 * 1000 * 5,
   });
 }
