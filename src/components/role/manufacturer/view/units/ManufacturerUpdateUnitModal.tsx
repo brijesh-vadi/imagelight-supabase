@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -80,6 +81,7 @@ const ManufacturerUpdateUnitModal = ({
           <DialogTitle className="text-primary text-xl">
             Update Unit
           </DialogTitle>
+          <DialogDescription />
         </DialogHeader>
         <form
           onSubmit={handleSubmit(onSubmit)}
