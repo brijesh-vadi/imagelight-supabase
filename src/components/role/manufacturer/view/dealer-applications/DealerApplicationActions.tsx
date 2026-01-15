@@ -114,25 +114,31 @@ const DealerApplicationActions = ({
 
   if (applicationStatus === "PENDING") {
     return (
-      <Button onClick={handleStartReview} disabled={loadingAction !== null}>
+      <Button onClick={handleStartReview} disabled={loadingAction !== null} className="md:size-default" size="sm">
         <Eye className="mr-2 h-4 w-4" />
-        Start Review {loadingAction === "START_REVIEW" && <Spinner />}
+        <span className="hidden md:inline">Start Review</span>
+        <span className="md:hidden">Review</span>
+        {loadingAction === "START_REVIEW" && <Spinner />}
       </Button>
     );
   }
 
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
         <Button
           onClick={() => setApproveDialogOpen(true)}
           disabled={loadingAction !== null}
+          className="md:size-default"
+          size="sm"
         >
           Approve {loadingAction === "APPROVE" && <Spinner />}
         </Button>
         <Button
           onClick={() => setRejectDialogOpen(true)}
           disabled={loadingAction !== null}
+          className="md:size-default"
+          size="sm"
         >
           Reject {loadingAction === "REJECT" && <Spinner />}
         </Button>
