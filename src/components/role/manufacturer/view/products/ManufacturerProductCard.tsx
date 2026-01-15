@@ -56,30 +56,28 @@ const ManufacturerProductCard = ({ product }: ProductCardProps) => {
         <CardHeader className="gap-0 p-0 border-b pb-0!">
           <div className="group relative">
             <Carousel opts={{ loop: true }} className="w-full">
-              <div className="relative aspect-video overflow-hidden bg-muted">
-                <CarouselContent>
-                  {allImages.map((image, index) => (
-                    <CarouselItem key={`${image}`}>
-                      <div className="relative aspect-video overflow-hidden">
-                        <Image
-                          src={image}
-                          alt={product.name}
-                          fill
-                          priority={index === 0}
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                {allImages.length > 1 && (
-                  <>
-                    <CarouselPrevious className="-translate-y-1/2 absolute top-1/2 left-2 z-10 h-8 w-8 border-0 bg-white/80 text-black opacity-0 shadow-md transition-opacity duration-200 hover:bg-white group-hover:opacity-100" />
-                    <CarouselNext className="-translate-y-1/2 absolute top-1/2 right-2 z-10 h-8 w-8 border-0 bg-white/80 text-black opacity-0 shadow-md transition-opacity duration-200 hover:bg-white group-hover:opacity-100" />
-                  </>
-                )}
-              </div>
+              <CarouselContent>
+                {allImages.map((image, index) => (
+                  <CarouselItem key={`${image}`}>
+                    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                      <Image
+                        src={image}
+                        alt={product.name}
+                        fill
+                        priority={index === 0}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {allImages.length > 1 && (
+                <>
+                  <CarouselPrevious className="-translate-y-1/2 absolute top-1/2 left-2 z-10 h-8 w-8 border-0 bg-white/80 text-black opacity-0 shadow-md transition-opacity duration-200 hover:bg-white group-hover:opacity-100" />
+                  <CarouselNext className="-translate-y-1/2 absolute top-1/2 right-2 z-10 h-8 w-8 border-0 bg-white/80 text-black opacity-0 shadow-md transition-opacity duration-200 hover:bg-white group-hover:opacity-100" />
+                </>
+              )}
             </Carousel>
           </div>
         </CardHeader>

@@ -33,11 +33,11 @@ export default function ProductSearchInput({ value, onChange }: Props) {
   };
 
   return (
-    <div className="relative w-md">
+    <div className="relative w-full">
       <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"
-        placeholder="Search products by name or SKU"
+        placeholder="Search products..."
         value={localValue}
         onChange={(e) => handleChange(e.target.value)}
         className="pl-9 pr-9"

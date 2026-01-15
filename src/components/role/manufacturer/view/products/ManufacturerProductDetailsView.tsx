@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -51,9 +53,9 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
   const isOutOfStock = !product?.in_stock || product?.stock === 0;
 
   return (
-    <div className="flex items-start gap-10">
+    <div className="flex flex-col md:flex-row items-start gap-6 md:gap-10">
       {/* Image Gallery */}
-      <div className="w-10/12 flex flex-col gap-6">
+      <div className="w-full md:w-10/12 flex flex-col gap-4 md:gap-6">
         <Carousel className="w-full">
           <CarouselContent>
             {allImages?.map((img, index) => (
@@ -73,15 +75,15 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
           </CarouselContent>
           {allImages.length > 1 && (
             <>
-              <CarouselPrevious className="left-4" />
-              <CarouselNext className="right-4" />
+              <CarouselPrevious className="left-2 md:left-4" />
+              <CarouselNext className="right-2 md:right-4" />
             </>
           )}
         </Carousel>
 
         {/* Thumbnail previews (optional enhancement) */}
         {allImages.length > 1 && (
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-2 md:gap-4">
             {allImages.map((img, index) => (
               <div
                 key={index}
@@ -102,51 +104,56 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
       </div>
 
       {/* Product Info */}
-      <div className="space-y-8 w-full">
-        <div className="flex flex-col gap-8">
+      <div className="space-y-6 md:space-y-8 w-full">
+        <div className="flex flex-col gap-6 md:gap-8">
           <div className="flex flex-col gap-2">
             {/* name */}
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
               {product?.name}
             </h1>
 
             {/* description */}
             <div>
-              <p className="text-muted-foreground leading-relaxed text-md">
+              <p className="text-muted-foreground leading-relaxed text-sm md:text-md">
                 {product?.description}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="bg-muted rounded-md p-4 max-w-md w-full">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+            <div className="bg-muted rounded-md p-3 md:p-4 max-w-md w-full">
               <div className="flex items-center justify-between">
                 {/* Regular Price - crossed out if dealer is lower */}
                 <div className="text-center">
-                  <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    Regular Price
+                  <Label className="text-xs md:text-sm font-medium text-muted-foreground">
+                    Retail Price
                   </Label>
-                  <p className={"text-2xl font-semibold mt-1"}>
+                  <p className={"text-xl md:text-2xl font-semibold mt-1"}>
                     {formatPrice(product?.regular_price)} /{" "}
-                    <span className="text-sm">{product?.unit?.name}</span>
+                    <span className="text-xs md:text-sm">
+                      {product?.unit?.name}
+                    </span>
                   </p>
                 </div>
 
-                <Separator orientation="vertical" className="!h-20 bg-border" />
+                <Separator orientation="vertical" className="h-14! bg-border" />
 
                 {/* Dealer Price - highlighted as primary */}
                 <div className="text-center">
-                  <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  <Label className="text-xs md:text-sm font-medium text-muted-foreground">
                     Dealer Price
                   </Label>
-                  <p className="text-2xl font-semibold text-primary mt-1">
+                  <p className="text-xl md:text-2xl font-semibold text-primary mt-1">
                     {formatPrice(product?.dealer_price)}/{" "}
-                    <span className="text-sm"> {product?.unit?.name}</span>
+                    <span className="text-xs md:text-sm">
+                      {" "}
+                      {product?.unit?.name}
+                    </span>
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-row gap-10 lg:flex-col lg:gap-2 w-fit mx-auto">
               {product?.dealer_price < product?.regular_price && (
                 <Badge
                   variant="secondary"
@@ -161,19 +168,25 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
                 </Badge>
               )}
 
-              <div className="flex items-center gap-4 w-fit mx-auto">
+              <div className="flex items-center gap-4 w-fit lg:mx-auto">
                 {isOutOfStock ? (
-                  <Badge variant="destructive" className="text-base px-4 py-1">
+                  <Badge
+                    variant="destructive"
+                    className="text-xs px-3 md:px-4 py-1"
+                  >
                     Out of Stock
                   </Badge>
                 ) : isLowStock ? (
-                  <Badge variant="secondary" className="text-base px-4 py-1">
+                  <Badge
+                    variant="secondary"
+                    className="text-xs px-3 md:px-4 py-1"
+                  >
                     Only {product?.stock} left
                   </Badge>
                 ) : (
                   <Badge
                     variant="default"
-                    className="text-base px-4 py-1 bg-green-600"
+                    className="text-xs px-3 md:px-4 py-1 bg-green-600"
                   >
                     In Stock
                   </Badge>
@@ -186,8 +199,8 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
         {/* Pricing */}
         <div className="space-y-2">
           <Card className="p-0 gap-0 overflow-hidden max-w-md w-full">
-            <CardContent className="space-y-3 text-sm p-4">
-              <div className="grid gap-2 text-sm">
+            <CardContent className="space-y-3 text-xs md:text-sm p-3 md:p-4">
+              <div className="grid gap-2">
                 <div className="flex justify-between gap-4 font-medium">
                   <span>Unit</span>
                   <span className="text-muted-foreground">
@@ -230,6 +243,11 @@ const ManufacturerProductDetailsView = ({ productId }: Props) => {
             </CardContent>
           </Card>
         </div>
+        <Button asChild className="w-full shrink-0 sm:hidden md:w-auto">
+          <Link href={`/manufacturer/products?update-id=${product.id}`}>
+            Update Product
+          </Link>
+        </Button>
       </div>
     </div>
   );

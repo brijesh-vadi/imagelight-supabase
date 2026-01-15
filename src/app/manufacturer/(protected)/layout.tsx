@@ -21,9 +21,9 @@ export default async function ManufacturerLayout({
   const { data: manufacturer } = await getManufacturerProfile(session.userId);
 
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="min-h-screen md:h-screen md:overflow-hidden">
       {manufacturer?.is_onboarded && manufacturer?.is_verified ? (
-        <div className="flex h-full overflow-hidden bg-background text-foreground">
+        <div className="flex min-h-screen md:h-full md:overflow-hidden bg-background text-foreground">
           {/* Desktop Sidebar */}
           <div className="hidden lg:block">
             <ManufacturerSidebar manufacturer={manufacturer} />

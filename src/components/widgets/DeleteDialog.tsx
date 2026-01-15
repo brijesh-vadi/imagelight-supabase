@@ -31,17 +31,17 @@ export const DeleteDialog = ({
 }: DeleteDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onCancelAction}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>
+          <AlertDialogTitle className="text-base md:text-lg text-left">
             Are you sure you want to delete{" "}
             <span className="text-destructive">{title}?</span>
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-muted-foreground">
+          <AlertDialogDescription className="text-muted-foreground text-xs md:text-sm text-left">
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex flex-row justify-end gap-2 ">
           <AlertDialogCancel asChild>
             <Button variant="ghost" className="w-fit">
               Cancel

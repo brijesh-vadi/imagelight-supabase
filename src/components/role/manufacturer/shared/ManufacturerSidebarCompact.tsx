@@ -70,7 +70,7 @@ const ManufacturerSidebarCompact = ({
       <SheetTrigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+          className="fixed bottom-2 right-2 z-50 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-shadow"
         >
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle menu</span>

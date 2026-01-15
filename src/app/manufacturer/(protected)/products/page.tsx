@@ -14,7 +14,7 @@ interface Props {
   }>;
 }
 
-const LIMIT = 9;
+const LIMIT = 12;
 
 const ManufacturerProductsPage = async ({ searchParams }: Props) => {
   const params = await searchParams;
@@ -26,15 +26,15 @@ const ManufacturerProductsPage = async ({ searchParams }: Props) => {
 
   if (isAddMode || updateId) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b pb-4">
+        <div className="flex items-center gap-3 md:gap-4 border-b pb-3 md:pb-4">
           <BackButton />
-          <div>
-            <h1 className="font-semibold text-2xl text-primary">
+          <div className="flex-1 min-w-0">
+            <h1 className="font-semibold text-xl md:text-2xl text-primary">
               {updateId ? "Update Product" : "Add Product"}
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-xs md:text-sm">
               {updateId
                 ? "Update your product details, pricing, images, and category information."
                 : "Create a new product by adding its details, pricing, images, and category information."}

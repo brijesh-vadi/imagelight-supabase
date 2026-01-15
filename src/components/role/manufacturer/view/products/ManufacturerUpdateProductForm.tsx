@@ -250,13 +250,13 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex w-full flex-col gap-6"
+      className="flex w-full flex-col gap-4 md:gap-6"
     >
-      <div className="flex items-start gap-10 min-h-0">
-        <div className="flex flex-col gap-6 flex-1">
+      <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-10">
+        <div className="flex flex-col gap-4 md:gap-6 flex-1 w-full">
           {/* Product Name */}
           <div className="flex w-full flex-col gap-2">
-            <Label>
+            <Label className="text-sm">
               Product Name <RequiredIndicator />
             </Label>
             <Input
@@ -271,7 +271,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
 
           {/* Description */}
           <div className="flex w-full flex-col gap-2">
-            <Label>
+            <Label className="text-sm">
               Description <RequiredIndicator />
             </Label>
             <Textarea
@@ -286,9 +286,9 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
 
           {/* Parent Category and Child Category */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Parent Category <RequiredIndicator />
               </Label>
               <Combobox
@@ -303,7 +303,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
             </div>
 
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Child Category <RequiredIndicator />
               </Label>
               <Combobox
@@ -330,9 +330,9 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
 
           {/* Regular Price and Dealer Price */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Regular Price <RequiredIndicator />
               </Label>
               <NumericField
@@ -350,7 +350,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
               )}
             </div>
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Dealer Price <RequiredIndicator />
               </Label>
               <NumericField
@@ -370,9 +370,9 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
 
           {/* SKU and Stock */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 SKU <RequiredIndicator />
               </Label>
               <Input
@@ -385,7 +385,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
               )}
             </div>
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Stock <RequiredIndicator />
               </Label>
               <NumericField
@@ -404,9 +404,9 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
 
           {/* Min Order Quantity and Unit */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Min. Order Quantity <RequiredIndicator />
               </Label>
               <NumericField
@@ -424,7 +424,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
             </div>
 
             <div className="flex w-full flex-col gap-2">
-              <Label>
+              <Label className="text-sm">
                 Unit <RequiredIndicator />
               </Label>
               <Combobox
@@ -447,7 +447,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           {/* Switches */}
           <div className="flex items-center gap-4">
             <div className="flex w-full items-center gap-2">
-              <Label>
+              <Label className="text-sm">
                 In Stock? <RequiredIndicator />
               </Label>
               <Switch
@@ -460,7 +460,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
             </div>
 
             <div className="flex w-full items-center gap-2">
-              <Label>
+              <Label className="text-sm">
                 Is Active? <RequiredIndicator />
               </Label>
               <Switch
@@ -474,14 +474,14 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
         </div>
 
-        <div className="w-px bg-border self-stretch" />
+        <div className="hidden lg:block w-px bg-border self-stretch" />
 
         {/* Image Upload Section */}
-        <div className="flex-1 flex items-start justify-start">
-          <div className="flex flex-col gap-8 w-full">
+        <div className="flex-1 w-full flex items-start justify-start">
+          <div className="flex flex-col gap-6 md:gap-8 w-full">
             {/* Primary Image */}
             <div className="space-y-2">
-              <Label>
+              <Label className="text-sm">
                 Primary Image <RequiredIndicator />
               </Label>
               <FileUpload
@@ -518,8 +518,8 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
 
             {/* Secondary Images */}
             <div className="space-y-2">
-              <Label>Secondary Images</Label>
-              <div className="grid grid-cols-4 gap-4">
+              <Label className="text-sm">Secondary Images</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {secondaryImages.map((img, index) => (
                   <FileUpload
                     key={`${img?.id}_${index}`}
@@ -540,7 +540,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
                   />
                 ))}
               </div>
-              <p className="text-xs  text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 PNG, JPG up to 2MB each (Max {MAX_SECONDARY_IMAGES - 1} images)
               </p>
               {errors.images?.message && (
@@ -552,10 +552,12 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-start md:justify-normal gap-3 md:gap-4">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" className="w-auto">
+              Cancel
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -575,7 +577,7 @@ const ManufacturerUpdateProductForm = ({ productId }: Props) => {
           </AlertDialogContent>
         </AlertDialog>
         <Button
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-auto"
           type="submit"
           disabled={isSubmitting}
         >

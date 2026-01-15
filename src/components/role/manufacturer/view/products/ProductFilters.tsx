@@ -50,15 +50,15 @@ export default function ProductFilters({
   ];
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
       {/* Search - takes more space */}
-      <div className="flex-1 max-w-md">
+      <div className="w-full md:flex-1 md:max-w-md">
         <ProductSearchInput value={search} onChange={onSearchChange} />
       </div>
 
-      {/* Filters - equal width comboboxes */}
-      <div className="flex items-center gap-2">
-        <div className="w-52">
+      {/* Filters - stacked on mobile, row on desktop */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+        <div className="w-full md:w-52">
           <Combobox
             options={categoryOptions}
             value={categoryId}
@@ -71,7 +71,7 @@ export default function ProductFilters({
           />
         </div>
 
-        <div className="w-52">
+        <div className="w-full md:w-52">
           <Combobox
             options={unitOptions}
             value={unitId}
@@ -84,7 +84,7 @@ export default function ProductFilters({
           />
         </div>
 
-        <div className="w-40">
+        <div className="w-full md:w-40">
           <Combobox
             options={statusOptions}
             value={isActive}

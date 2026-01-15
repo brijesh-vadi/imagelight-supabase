@@ -56,17 +56,19 @@ export default function ManufacturerProductsClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="font-semibold text-2xl text-primary">Products</h1>
-          <p className="text-muted-foreground text-sm">
+      <div className="flex items-start justify-between gap-3 border-b pb-3 md:pb-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="font-semibold text-xl md:text-2xl text-primary">
+            Products
+          </h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             Manage and organize all your products, including details, pricing,
             and categories.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="shrink-0">
           <Link href="/manufacturer/products?add-product">Add Product</Link>
         </Button>
       </div>
@@ -84,11 +86,13 @@ export default function ManufacturerProductsClient({
       />
 
       {data?.products.length === 0 && (
-        <div className="flex items-center justify-center py-22">
-          <div className="flex flex-col  mx-auto text-center">
-            <Package className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
-            <h3 className="font-semibold text-xl mb-2">No products added</h3>
-            <p className="text-muted-foreground text-sm mb-6">
+        <div className="flex items-center justify-center py-16 md:py-22">
+          <div className="flex flex-col mx-auto text-center px-4">
+            <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mb-3 md:mb-4 mx-auto" />
+            <h3 className="font-semibold text-lg md:text-xl mb-2">
+              No products added
+            </h3>
+            <p className="text-muted-foreground text-xs md:text-sm mb-6">
               Start adding product to recieve your first order
             </p>
           </div>
