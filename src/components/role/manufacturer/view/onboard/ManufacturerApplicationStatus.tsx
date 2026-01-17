@@ -84,25 +84,25 @@ const ManufacturerApplicationStatus = ({
   const config = statusConfig[currentStatus] || statusConfig.pending;
 
   return (
-    <div className="mx-auto max-w-7xl flex items-center justify-center h-screen">
-      <div className="grid gap-8 lg:grid-cols-2">
+    <div className="mx-auto max-w-7xl flex items-center justify-center h-auto md:h-screen p-4 md:p-0">
+      <div className="grid gap-6 md:gap-8 grid-cols-1 lg:grid-cols-2 w-full">
         {/* Left Card: Company Details + Current Status */}
-        <Card className="flex flex-col overflow-hidden p-0 gap-0 h-[70vh]">
-          <CardHeader className="shrink-0 gap-0 border-b bg-muted p-4">
-            <div className="space-y-1 text-center">
-              <CardTitle className="font-semibold text-2xl text-primary">
+        <Card className="flex flex-col overflow-hidden p-0 gap-0 h-auto md:h-[70vh]">
+          <CardHeader className="shrink-0 gap-0 border-b bg-muted p-4!">
+            <div className="flex flex-col gap-2 text-center">
+              <CardTitle className="font-semibold text-xl md:text-2xl text-primary">
                 {config.label}
               </CardTitle>
-              <CardDescription className="text-sm leading-relaxed">
+              <CardDescription className="text-xs md:text-sm leading-relaxed">
                 {config.description}
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 space-y-8 overflow-scroll px-6 pt-6 pb-6">
+          <CardContent className="flex-1 space-y-6 md:space-y-8 overflow-auto md:overflow-scroll px-4 md:px-6 pt-4 md:pt-6 pb-4 md:pb-6">
             {/* Company Logo + Name */}
             <div className="flex items-center justify-between">
-              <div className="flex  items-center gap-4 w-full">
-                <Avatar className="h-12 w-12">
+              <div className="flex items-center gap-3 md:gap-4 w-full">
+                <Avatar className="h-10 w-10 md:h-12 md:w-12">
                   <AvatarImage
                     src={manufacturer.company_logo || ""}
                     alt={manufacturer.company_name || "Company"}
@@ -113,12 +113,16 @@ const ManufacturerApplicationStatus = ({
                     {manufacturer.company_name?.[1] || "O"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex items-center justify-between w-full">
-                  <p className="font-semibold text-lg text-muted-foreground">
+                <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-2">
+                  <p className="font-semibold text-base md:text-lg text-muted-foreground">
                     {manufacturer.company_name}
                   </p>
                   {manufacturer?.application_status === "REJECTED" && (
-                    <Button onClick={() => setIsEditModalOpen(true)}>
+                    <Button
+                      onClick={() => setIsEditModalOpen(true)}
+                      size="sm"
+                      className="md:h-10 md:px-4 md:py-2 w-fit"
+                    >
                       Update Application
                     </Button>
                   )}
@@ -127,52 +131,52 @@ const ManufacturerApplicationStatus = ({
             </div>
 
             {/* Company Details */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2 font-medium text-sm">
+            <div className="flex flex-col gap-3 md:gap-4">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>Contact Person :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.contact_person}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>GST :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.gst_number}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>Website :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.website || "-"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>City :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.city || "-"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>State :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.state || "-"}
                 </span>
               </div>
-              <div className="flex items-center gap-2 font-medium text-sm">
+              <div className="flex items-center gap-2 font-medium text-xs md:text-sm">
                 <Label>Pincode :</Label>
                 <span className="text-muted-foreground">
                   {manufacturer.pincode || "-"}
                 </span>
               </div>
-              <div className="flex items-start gap-2 font-medium text-sm">
+              <div className="flex items-start gap-2 font-medium text-xs md:text-sm">
                 <Label className="whitespace-nowrap">Address :</Label>
-                <span className="min-w-0 flex-1 break-words text-muted-foreground">
+                <span className="min-w-0 flex-1 wrap-break-word text-muted-foreground">
                   {manufacturer.address}
                 </span>
               </div>
-              <div className="flex items-start gap-2 font-medium text-sm">
+              <div className="flex items-start gap-2 font-medium text-xs md:text-sm">
                 <Label className="whitespace-nowrap">Description :</Label>
-                <span className="min-w-0 flex-1 break-words text-muted-foreground">
+                <span className="min-w-0 flex-1 wrap-break-word text-muted-foreground">
                   {manufacturer.company_description}
                 </span>
               </div>
@@ -184,7 +188,7 @@ const ManufacturerApplicationStatus = ({
         <ApplicationTimeline
           currentStatus={currentStatus}
           history={history}
-          className="h-[70vh]"
+          className="h-auto md:h-[70vh]"
         />
       </div>
       <ManufacturerOnboradUpdateForm

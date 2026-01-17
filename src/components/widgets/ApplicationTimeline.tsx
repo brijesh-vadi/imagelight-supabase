@@ -131,9 +131,9 @@ const ApplicationTimeline = ({
 
   return (
     <Card className={cn("overflow-hidden p-0 gap-0", className)}>
-      <CardHeader className="border-b bg-muted text-center !p-4">
+      <CardHeader className="border-b bg-muted text-center p-4!">
         <CardTitle className="text-2xl">Application Timeline</CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs md:text-sm">
           Track every step of the verification journey
         </CardDescription>
       </CardHeader>

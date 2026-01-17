@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import FileUpload from "@/components/widgets/FileUpload";
 import RequiredIndicator from "@/components/widgets/RequiredIndicator";
@@ -31,7 +32,7 @@ import {
 } from "@/schema/manufacturer/onboard";
 
 const STEPS = [
-  { id: 1, name: "Company Information" },
+  { id: 1, name: "Company Info" },
   { id: 2, name: "Address Details" },
   { id: 3, name: "Documents" },
 ];
@@ -144,18 +145,18 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-4xl overflow-y-auto p-0 gap-0 [&>button:first-of-type]:hidden">
+      <DialogContent className="w-[95vw] md:min-w-4xl overflow-y-auto p-0 gap-0 min-h-auto sm:max-h-[90vh] [&>button:first-of-type]:hidden">
         <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-3 text-xl mx-auto">
+            <span className="flex flex-col sm:flex-row items-center gap-3 text-lg sm:text-xl mx-auto">
               <Building2 className="h-7 w-7 text-primary" />
               Complete Your Manufacturer Profile
             </span>
           </DialogTitle>
           <DialogDescription />
 
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center mt-6">
+          {/* Step Indicator - Hidden on mobile */}
+          <div className="flex flex-row md:flex items-center justify-center mt-6">
             {STEPS.map((step, index) => (
               <Fragment key={step.id}>
                 <div className="flex flex-col items-center">
@@ -181,12 +182,7 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                   </div>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className={`h-0.5 w-32 transition-colors mx-4`} />
-                  // <div
-                  //   className={`h-0.5 w-32 transition-colors mx-4 ${
-                  //     currentStep > step.id + 1 ? "bg-primary" : "bg-border"
-                  //   }`}
-                  // />
+                  <div className={`h-0.5 sm:w-32 transition-colors mx-4`} />
                 )}
               </Fragment>
             ))}
@@ -195,7 +191,7 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Card className="border-0 shadow-none rounded-t-none p-0">
-            <CardContent className="p-8 pt-6 space-y-8">
+            <CardContent className="p-4 sm:p-8 pt-6 space-y-8">
               {/* Step 1: Company Info */}
               {currentStep === 1 && (
                 <div className="space-y-8">
@@ -398,7 +394,6 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                         certificate (up to 2MB)
                       </p>
                     </div>
-                    {/* Validation message removed */}
                   </div>
                 </div>
               )}
@@ -429,7 +424,8 @@ const ManufacturerOnboardForm = ({ userId, open, onOpenChange }: Props) => {
                 type="submit"
                 disabled={isSubmitting || !companyLogo || !verificationDocument}
               >
-                {isSubmitting ? "Submitting..." : "Complete Profile"}
+                Complete Profile
+                {isSubmitting && <Spinner className="w-4 h-4" />}
               </Button>
             )}
           </div>
