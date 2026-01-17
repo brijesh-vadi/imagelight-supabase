@@ -60,7 +60,7 @@ export async function getDealerProducts({
         `
         *,
         unit:unit(id, name),
-        category:categories(id, name),
+        category:categories!products_category_id_fkey(id, name),
         manufacturer:manufacturer_id(id, company_name, company_logo)
       `,
         { count: "exact" },
@@ -137,7 +137,7 @@ export async function getDealerProductById(
         `
         *,
         unit:unit(id, name),
-        category:categories(id, name),
+        category:categories!products_category_id_fkey(id, name),
         manufacturer:manufacturer_id(id, company_name, company_logo, email, mobile, address, city, state, pincode, website, company_description)
       `
       )

@@ -12,19 +12,14 @@ export default async function ManufacturerOrdersPage() {
 
   if (orders.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="border-b pb-4">
-          <h1 className="font-semibold text-2xl text-primary">My Orders</h1>
-          <p className="text-muted-foreground text-sm">
-            View and track your orders
-          </p>
-        </div>
-
+      <div className="space-y-4 md:space-y-6">
         <Card className="shadow-none border-none">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Package className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-xl mb-2">No orders yet</h3>
-            <p className="text-muted-foreground text-sm mb-6">
+          <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 px-4">
+            <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mb-3 md:mb-4" />
+            <h3 className="font-semibold text-lg md:text-xl mb-2">
+              No orders yet
+            </h3>
+            <p className="text-muted-foreground text-xs md:text-sm mb-6 text-center">
               Orders from dealers will be visible here dealers start placing
               orders
             </p>
@@ -37,10 +32,12 @@ export default async function ManufacturerOrdersPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="font-semibold text-2xl text-primary">My Orders</h1>
-          <p className="text-muted-foreground text-sm">
+      <div className="flex items-start justify-between border-b pb-3 md:pb-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="font-semibold text-xl md:text-2xl text-primary">
+            My Orders
+          </h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             Review dealer orders, monitor order status, and manage dispatch and
             fulfillment
           </p>

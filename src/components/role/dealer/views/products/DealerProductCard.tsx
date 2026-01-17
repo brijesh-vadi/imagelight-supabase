@@ -96,23 +96,23 @@ const DealerProductCard = ({ product }: ProductCardProps) => {
         <div className="flex items-start gap-6 bg-muted p-2 rounded-md">
           {/* Dealer Price */}
           <div className="flex flex-col gap-1 flex-1">
-            <Label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+            <Label className="text-muted-foreground text-xs font-medium w-fit mx-auto">
               Dealer Price
             </Label>
-            <span className="text-lg font-semibold">
+            <span className="text-lg font-semibold  text-center">
               {formatPrice(product.dealer_price)}
             </span>
           </div>
 
           {/* Separator */}
-          <Separator orientation="vertical" className="h-12" />
+          <Separator orientation="vertical" className="h-12! bg-border" />
 
-          {/* Regular Price */}
+          {/* Retail Price */}
           <div className="flex flex-col gap-1 flex-1">
-            <Label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
-              Regular Price
+            <Label className="text-muted-foreground text-xs font-medium w-fit mx-auto">
+              Retail Price
             </Label>
-            <span className="text-lg font-semibold">
+            <span className="text-lg font-semibold  text-center">
               {formatPrice(product.regular_price)}
             </span>
           </div>

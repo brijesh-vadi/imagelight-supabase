@@ -125,7 +125,7 @@ export async function getCartItems(): Promise<ApiResponse<CartItem[]>> {
           is_active,
           manufacturer_id,
           unit:unit(id, name),
-          category:categories(id, name)
+          category:categories!products_category_id_fkey(id, name)
         )
       `,
       )
