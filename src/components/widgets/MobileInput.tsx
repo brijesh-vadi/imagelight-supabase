@@ -10,12 +10,14 @@ interface MobileInputProps {
   register: UseFormRegisterReturn;
   error?: FieldError;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 const MobileInput = ({
   label = "Mobile Number",
   register,
   error,
+  disabled,
   placeholder = "9876543210",
 }: MobileInputProps) => {
   return (
@@ -27,6 +29,7 @@ const MobileInput = ({
         <Input
           type="tel"
           {...register}
+          disabled={disabled}
           placeholder={placeholder}
           onInput={(e) => {
             e.currentTarget.value = e.currentTarget.value

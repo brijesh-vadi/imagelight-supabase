@@ -8,8 +8,8 @@ export default function ManufacturerAuthLayout({
   return (
     <div className="min-h-screen">
       <div className="flex min-h-screen">
-        {/* Left Side - Info Section */}
-        <div className="flex w-1/2 items-center justify-center bg-muted p-8">
+        {/* Left Side - Info Section - Hidden on mobile */}
+        <div className="hidden md:flex md:w-1/2 items-center justify-center bg-muted p-8">
           <div className="max-w-md space-y-8">
             <div className="space-y-4">
               <h1 className="font-bold text-4xl text-foreground">
@@ -83,8 +83,8 @@ export default function ManufacturerAuthLayout({
           </div>
         </div>
 
-        {/* Right Side - Form Section */}
-        <div className="flex w-1/2 items-center justify-center p-8">
+        {/* Right Side - Form Section - Full width on mobile, half on desktop */}
+        <div className="flex w-full md:w-1/2 items-center justify-center p-6 md:p-8">
           {children}
         </div>
       </div>
