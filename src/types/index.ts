@@ -213,7 +213,7 @@ export interface CartItem {
   addedAt: string;
   updatedAt: string;
 
-  product?: Product;
+  product: Product;
 }
 
 export interface Order {

@@ -23,12 +23,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import BackButton from "@/components/widgets/BackButton";
+import { useDealerOrderById } from "@/hooks/dealer/useDealerOrders";
 import { formatDate, formatPrice } from "@/lib/utils";
-import type { Order, OrderStatus, PaymentStatus } from "@/types";
+import type { OrderStatus, PaymentStatus } from "@/types";
 import DealerOrderItemActionDropdown from "./DealerOrderItemActionDropdown";
 
 interface Props {
-  order: Order;
+  orderId: string;
 }
 
 const getOrderStatusColor = (status: OrderStatus) => {
@@ -67,11 +68,32 @@ const getPaymentStatusColor = (status: PaymentStatus) => {
   }
 };
 
-const DealerOrderDetailsView = ({ order }: Props) => {
+const DealerOrderDetailsView = ({ orderId }: Props) => {
   const router = useRouter();
+
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  const { data, isLoading, isError } = useDealerOrderById(orderId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  if (isError || !data?.data) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <p className="text-muted-foreground">Product not found</p>
+      </div>
+    );
+  }
+
+  const order = data?.data?.order;
 
   const handleCancelOrder = () => {
     setSelectedItemId(null);

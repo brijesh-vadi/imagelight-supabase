@@ -6,18 +6,18 @@ import { getSession } from "@/lib/supabase/session";
 import type { ApiResponse, Product } from "@/types";
 import { Role } from "@/types";
 
-export interface CartItem {
-  id: string;
-  dealer_id: string;
-  product_id: string;
-  quantity: number;
-  added_at: string;
-  updated_at: string;
-  product: Product & {
-    unit?: { id: string; name: string };
-    category?: { id: string; name: string };
-  };
-}
+// export interface CartItem {
+//   id: string;
+//   dealer_id: string;
+//   product_id: string;
+//   quantity: number;
+//   added_at: string;
+//   updated_at: string;
+//   product: Product & {
+//     unit?: { id: string; name: string };
+//     category?: { id: string; name: string };
+//   };
+// }
 
 export async function addToCart(
   productId: string,
@@ -82,92 +82,6 @@ export async function addToCart(
     };
   } catch (err) {
     console.error("Unexpected error in addToCart:", err);
-    return {
-      success: false,
-      message: "Something went wrong. Please try again.",
-    };
-  }
-}
-
-export async function getCartItems(): Promise<ApiResponse<CartItem[]>> {
-  const supabase = await createClient();
-  const session = await getSession(Role.DEALER);
-
-  if (!session?.userId) {
-    return {
-      success: false,
-      message: "Unauthorized. Please login again.",
-    };
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from("carts")
-      .select(
-        `
-        id,
-        dealer_id,
-        product_id,
-        quantity,
-        added_at,
-        updated_at,
-        product:products (
-          id,
-          name,
-          description,
-          primary_image,
-          images,
-          sku,
-          dealer_price,
-          regular_price,
-          stock,
-          min_order_quantity,
-          is_active,
-          manufacturer_id,
-          unit:unit(id, name),
-          category:categories!products_category_id_fkey(id, name)
-        )
-      `,
-      )
-      .eq("dealer_id", session.userId)
-      .order("added_at", { ascending: false });
-
-    if (error) {
-      console.error("Fetch cart error:", error);
-      return {
-        success: false,
-        message: "Failed to fetch cart items.",
-      };
-    }
-
-    // Transform the data to handle Supabase's array returns for foreign keys
-    const transformedData: CartItem[] = (data || []).map((item: any) => ({
-      id: item.id,
-      dealer_id: item.dealer_id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      added_at: item.added_at,
-      updated_at: item.updated_at,
-      product: {
-        ...item.product,
-        unit:
-          Array.isArray(item.product.unit) && item.product.unit.length > 0
-            ? item.product.unit[0]
-            : undefined,
-        category:
-          Array.isArray(item.product.category) &&
-          item.product.category.length > 0
-            ? item.product.category[0]
-            : undefined,
-      },
-    }));
-
-    return {
-      success: true,
-      data: transformedData,
-    };
-  } catch (err) {
-    console.error("Unexpected error in getCartItems:", err);
     return {
       success: false,
       message: "Something went wrong. Please try again.",

@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useDealerProducts } from "@/lib/react-query/hooks/useDealerProducts";
+import { Spinner } from "@/components/ui/spinner";
+import { useDealerProducts } from "@/hooks/dealer/useDealerProducts";
 import DealerProductListView from "./DealerProductListView";
 import DealerProductFilters from "./DealerProductsFilter";
 
@@ -22,13 +22,15 @@ const DealerProductsClient = ({
   const [categoryId, setCategoryId] = useState<string>("");
   const [unitId, setUnitId] = useState<string>("");
 
-  const { data, isLoading, isError, error } = useDealerProducts({
+  const { data, isLoading, isError } = useDealerProducts({
     page,
     limit,
     search,
     categoryId,
     unitId,
   });
+
+  if (!data?.data && !isLoading) return;
 
   const handleSearchChange = (newSearch: string) => {
     setSearch(newSearch);
@@ -68,25 +70,16 @@ const DealerProductsClient = ({
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
-
-      {/* Error State */}
-      {isError && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-          <p className="text-destructive text-sm">
-            {error?.message || "Failed to load products"}
-          </p>
+        <div className="flex items-center justify-center min-h-175">
+          <Spinner className="h-8 w-8" />
         </div>
       )}
 
       {/* Products List */}
       {!isLoading && !isError && data && (
         <DealerProductListView
-          products={data.products}
-          total={data.total}
+          products={data?.data?.products ?? []}
+          total={data?.data?.total ?? 0}
           page={page}
           limit={limit}
           onPageChange={setPage}

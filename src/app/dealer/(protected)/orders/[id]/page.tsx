@@ -1,5 +1,3 @@
-import { notFound } from "next/navigation";
-import { getDealerOrderById } from "@/actions/dealer/order.action";
 import DealerOrderDetailsView from "@/components/role/dealer/views/orders/DealerOrderDetailsView";
 
 interface Props {
@@ -7,12 +5,7 @@ interface Props {
 }
 
 export default async function DealerOrderDetailPage({ params }: Props) {
-  const { id } = await params;
-  const result = await getDealerOrderById(id);
+  const { id: orderId } = await params;
 
-  if (!result.success || !result.data) {
-    notFound();
-  }
-
-  return <DealerOrderDetailsView order={result.data.order} />;
+  return <DealerOrderDetailsView orderId={orderId} />;
 }

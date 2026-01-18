@@ -4,10 +4,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  type CartItem,
   clearCart,
   removeFromCart,
   updateCartItemQuantity,
@@ -37,22 +36,29 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useCartItems } from "@/hooks/dealer/useCartItems";
 import { formatPrice } from "@/lib/utils";
+import type { CartItem } from "@/types";
 
-interface Props {
-  initialCartItems: CartItem[];
-}
-
-const DealerCartView = ({ initialCartItems }: Props) => {
+const DealerCartView = () => {
   const router = useRouter();
+  const { data, isLoading } = useCartItems();
+
   const queryClient = useQueryClient();
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const [cartItems, setCartItems] = useState<CartItem[]>();
+
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
   const [shippingAddress, setShippingAddress] = useState("");
   const [billingAddress, setBillingAddress] = useState("");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (data?.data) {
+      setCartItems(data?.data);
+    }
+  }, [data?.data]);
 
   const updateQuantityMutation = useMutation({
     mutationFn: ({
@@ -65,7 +71,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     onSuccess: (result, variables) => {
       if (result.success) {
         setCartItems((prev) =>
-          prev.map((item) =>
+          prev?.map((item) =>
             item.id === variables.cartItemId
               ? { ...item, quantity: variables.quantity }
               : item,
@@ -86,7 +92,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
     mutationFn: (cartItemId: string) => removeFromCart(cartItemId),
     onSuccess: (result, cartItemId) => {
       if (result.success) {
-        setCartItems((prev) => prev.filter((item) => item.id !== cartItemId));
+        setCartItems((prev) => prev?.filter((item) => item.id !== cartItemId));
         toast.success(result.message);
         queryClient.invalidateQueries({ queryKey: ["cart"] });
         setItemToRemove(null);
@@ -174,22 +180,25 @@ const DealerCartView = ({ initialCartItems }: Props) => {
 
   const getManufacturerCount = () => {
     const manufacturers = new Set(
-      cartItems.map((item) => item.product?.manufacturer_id),
+      cartItems?.map((item) => item.product?.manufacturer_id),
     );
     return manufacturers.size;
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
-      return total + item.product.dealer_price * item.quantity;
-    }, 0);
+  const calculateTotal = (): number => {
+    return (
+      cartItems?.reduce(
+        (total, item) => total + item.product.dealer_price * item.quantity,
+        0,
+      ) ?? 0
+    );
   };
 
   const calculateItemTotal = (item: CartItem) => {
     return item.product.dealer_price * item.quantity;
   };
 
-  if (cartItems.length === 0) {
+  if (cartItems?.length === 0) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -224,7 +233,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
         <div>
           <h1 className="font-semibold text-2xl text-primary">Shopping Cart</h1>
           <p className="text-muted-foreground text-sm">
-            {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in
+            {cartItems?.length} {cartItems?.length === 1 ? "item" : "items"} in
             your cart
           </p>
         </div>
@@ -237,7 +246,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {cartItems.map((item) => (
+          {cartItems?.map((item) => (
             <Card key={item.id}>
               <CardContent className="">
                 <div className="flex gap-4">
@@ -360,7 +369,7 @@ const DealerCartView = ({ initialCartItems }: Props) => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Items</span>
-                  <span className="font-medium">{cartItems.length}</span>
+                  <span className="font-medium">{cartItems?.length}</span>
                 </div>
               </div>
 

@@ -10,7 +10,7 @@ import {
 } from "@/actions/dealer/cart.action";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useCart } from "@/lib/react-query/hooks/useCart";
+import { useCartItems } from "@/hooks/dealer/useCartItems";
 
 interface AddToCartButtonProps {
   productId: string;
@@ -25,9 +25,11 @@ const AddToCartButton = ({
 }: AddToCartButtonProps) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const { data: cartItems, refetch } = useCart();
+  const { data, refetch } = useCartItems();
 
-  const cartItem = cartItems?.find((item) => item.product_id === productId);
+  const cartItems = data?.data;
+
+  const cartItem = cartItems?.find((item) => item?.productId === productId);
   const isInCart = !!cartItem;
   const currentQuantity = cartItem?.quantity || 0;
 

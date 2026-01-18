@@ -1,6 +1,8 @@
 "use client";
 
+import { Package } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -27,14 +30,11 @@ import {
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { useDealerOrders } from "@/hooks/dealer/useDealerOrders";
 import { formatDate, formatPrice } from "@/lib/utils";
-import type { Order, OrderStatus, PaymentStatus } from "@/types";
+import type { OrderStatus, PaymentStatus } from "@/types";
 import DealerOrderActionsDropdown from "./DealerOrderActionsDropdown";
 import DealerOrderItemActionDropdown from "./DealerOrderItemActionDropdown";
-
-interface Props {
-  orders: Order[];
-}
 
 const getOrderStatusColor = (status: OrderStatus) => {
   switch (status) {
@@ -72,7 +72,11 @@ const getPaymentStatusColor = (status: PaymentStatus) => {
   }
 };
 
-const DealerOrdersView = ({ orders }: Props) => {
+const DealerOrdersView = () => {
+  const { data, isLoading, isError } = useDealerOrders();
+
+  const orders = data?.data?.orders ?? [];
+
   const router = useRouter();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -119,6 +123,33 @@ const DealerOrdersView = ({ orders }: Props) => {
       setIsCancelling(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  if (orders.length === 0 && !isLoading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Card className="shadow-none border-none">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Package className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="font-semibold text-xl mb-2">No orders yet</h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              Start shopping to place your first order
+            </p>
+            <Button asChild>
+              <Link href="/dealer/products">Browse Products</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-8">

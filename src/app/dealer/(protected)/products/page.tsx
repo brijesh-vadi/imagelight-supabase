@@ -16,7 +16,7 @@ const DealerProductsPage = async ({ searchParams }: Props) => {
   const search = params.search || "";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <DealerProductsClient
         limit={LIMIT}
         initialPage={page}
