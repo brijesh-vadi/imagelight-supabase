@@ -1,5 +1,6 @@
 "use client";
 
+import { Package } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -30,14 +31,11 @@ import {
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { useManufacturerOrders } from "@/hooks/manufacturer/useManufacturerOrders";
 import { formatDate, formatPrice } from "@/lib/utils";
-import type { Order, OrderStatus, PaymentStatus } from "@/types";
+import type { OrderStatus, PaymentStatus } from "@/types";
 import ManufacturerOrderActionsDropdown from "./ManufacturerOrderActionsDropdown";
 import ManufacturerOrderItemActionDropdown from "./ManufacturerOrderItemActionDropdown";
-
-interface Props {
-  orders: Order[];
-}
 
 const getOrderStatusColor = (status: OrderStatus) => {
   switch (status) {
@@ -75,7 +73,11 @@ const getPaymentStatusColor = (status: PaymentStatus) => {
   }
 };
 
-const ManufacturerOrdersView = ({ orders }: Props) => {
+const ManufacturerOrdersView = () => {
+  const { data, isLoading } = useManufacturerOrders();
+
+  const orders = data?.data?.orders ?? [];
+
   const router = useRouter();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -122,6 +124,33 @@ const ManufacturerOrdersView = ({ orders }: Props) => {
       setIsCancelling(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-175">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  if (orders.length === 0 && !isLoading) {
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <Card className="shadow-none border-none">
+          <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 px-4">
+            <Package className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mb-3 md:mb-4" />
+            <h3 className="font-semibold text-lg md:text-xl mb-2">
+              No orders yet
+            </h3>
+            <p className="text-muted-foreground text-xs md:text-sm mb-6 text-center">
+              Orders from dealers will be visible here dealers start placing
+              orders
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
